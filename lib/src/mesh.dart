@@ -263,6 +263,7 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
     }
   }
 
+  // get the texture size
   int textureWidth = 0;
   int textureHeight = 0;
   for (Mesh mesh in meshes) {
@@ -271,6 +272,7 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
     if (textureHeight < box.top + box.height) textureHeight = (box.top + box.height).ceil();
   }
 
+  // get the pixels from mesh.image
   final texture = Uint32List(textureWidth * textureHeight);
   for (Mesh mesh in meshes) {
     final int imageWidth = mesh.textureRect.width.toInt();
@@ -287,6 +289,11 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
         pixels[i] = color;
       }
     }
+
+    // break if the mesh.image has changed
+    if (mesh.textureRect.right > textureWidth || mesh.textureRect.bottom > textureHeight) break;
+
+    // copy pixels from mesh.image to texture
     int fromIndex = 0;
     int toIndex = mesh.textureRect.top.toInt() * textureWidth + mesh.textureRect.left.toInt();
     for (int y = 0; y < imageHeight; y++) {
