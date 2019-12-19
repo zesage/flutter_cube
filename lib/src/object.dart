@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:vector_math/vector_math_64.dart';
+import 'scene.dart';
 import 'mesh.dart';
 
 class Object {
@@ -8,6 +10,7 @@ class Object {
     Vector3 scale,
     this.name,
     this.mesh,
+    this.scene,
     this.parent,
     this.children,
     String fileName,
@@ -33,7 +36,10 @@ class Object {
             add(Object(name: mesh.name, mesh: mesh));
           }
         }
+        scene?.objectCreated(this);
       });
+    } else {
+      scene?.objectCreated(this);
     }
   }
 
@@ -48,6 +54,9 @@ class Object {
 
   /// The name of this object.
   String name;
+
+  /// The scene of this object.
+  Scene scene;
 
   /// The parent of this object.
   Object parent;
@@ -69,6 +78,7 @@ class Object {
   /// Add a child
   void add(Object object) {
     assert(object != this);
+    object.scene = scene;
     object.parent = this;
     children.add(object);
   }
