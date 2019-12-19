@@ -72,3 +72,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+  assets:
+    - assets/cube/cube.obj
+    - assets/cube/cube.mtl
+    - assets/cube/flutter.png

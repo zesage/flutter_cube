@@ -1,5 +1,6 @@
-import 'package:cube/cube.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:cube/cube.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,6 +26,28 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  void _onSceneCreated(Scene scene) {
+    scene.camera.position.z = 35;
+    scene.world.add(Object(fileName: 'assets/cube/cube.obj'));
+    final random = Random();
+    for (int i = 0; i < 100; i++) {
+      final Object cube = Object(
+        position: Vector3(
+          random.nextDouble() * 30 - 15,
+          random.nextDouble() * 30 - 15,
+          random.nextDouble() * 30 - 15,
+        ),
+        rotation: Vector3(
+          random.nextDouble() * 360,
+          random.nextDouble() * 360,
+          random.nextDouble() * 360,
+        ),
+        fileName: 'assets/cube/cube.obj',
+      );
+      scene.world.add(cube);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +55,9 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Cube(),
+        child: Cube(
+          onSceneCreated: _onSceneCreated,
+        ),
       ),
     );
   }
