@@ -223,6 +223,32 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
     meshes.add(mesh);
   }
 
+  return normalizeMesh(meshes);
+}
+
+/// Scale the model size to 1
+List<Mesh> normalizeMesh(List<Mesh> meshes) {
+  double maxLength = 0;
+  for (Mesh mesh in meshes) {
+    final List<Vector3> vertices = mesh.vertices;
+    for (int i = 0; i < vertices.length; i++) {
+      final storage = vertices[i].storage;
+      final double x = storage[0];
+      final double y = storage[1];
+      final double z = storage[2];
+      if (x > maxLength) maxLength = x;
+      if (y > maxLength) maxLength = y;
+      if (z > maxLength) maxLength = z;
+    }
+  }
+
+  maxLength = 0.5 / maxLength;
+  for (Mesh mesh in meshes) {
+    final List<Vector3> vertices = mesh.vertices;
+    for (int i = 0; i < vertices.length; i++) {
+      vertices[i].scale(maxLength);
+    }
+  }
   return meshes;
 }
 
