@@ -33,7 +33,7 @@ class Object {
         } else if (meshes.length > 1) {
           // multiple objects
           for (Mesh mesh in meshes) {
-            add(Object(name: mesh.name, mesh: mesh));
+            add(Object(name: mesh.name, mesh: mesh, scene: scene));
           }
         }
         scene?.objectCreated(this);
