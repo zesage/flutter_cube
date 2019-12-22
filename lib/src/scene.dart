@@ -8,20 +8,24 @@ import 'mesh.dart';
 typedef ObjectCreatedCallback = void Function(Object object);
 
 class Scene {
-  Scene({this.onUpdate, this.onObjectCreated}) {
+  Scene({VoidCallback onUpdate, ObjectCreatedCallback onObjectCreated}) {
+    this._onUpdate = onUpdate;
+    this._onObjectCreated = onObjectCreated;
     camera = Camera();
     world = Object(scene: this);
+    blendMode = BlendMode.srcOver;
   }
   Camera camera;
   Object world;
   Image texture;
-  VoidCallback onUpdate;
-  ObjectCreatedCallback onObjectCreated;
+  BlendMode blendMode;
+  VoidCallback _onUpdate;
+  ObjectCreatedCallback _onObjectCreated;
   int vertexCount;
   int faceCount;
 
   // calculate the total number of vertices and faces
-  _calculateVertices(Object o) {
+  void _calculateVertices(Object o) {
     vertexCount += o.mesh.vertices.length;
     faceCount += o.mesh.indices.length;
     final int childCount = o.children.length;
@@ -30,7 +34,7 @@ class Scene {
     }
   }
 
-  RenderMesh makeRenderMesh() {
+  RenderMesh _makeRenderMesh() {
     vertexCount = 0;
     faceCount = 0;
     _calculateVertices(world);
@@ -39,7 +43,7 @@ class Scene {
     return renderMesh;
   }
 
-  void renderObject(RenderMesh renderMesh, Object o, Matrix4 transform) {
+  void _renderObject(RenderMesh renderMesh, Object o, Matrix4 transform) {
     transform *= o.transform;
 
     // apply transform and add vertices to renderMesh
@@ -111,13 +115,13 @@ class Scene {
 
     // render children
     for (Object child in o.children) {
-      renderObject(renderMesh, child, transform);
+      _renderObject(renderMesh, child, transform);
     }
   }
 
   void render(Canvas canvas, Size size) {
-    final renderMesh = makeRenderMesh();
-    renderObject(renderMesh, world, camera.projectionMatrix * camera.lookAtMatrix);
+    final renderMesh = _makeRenderMesh();
+    _renderObject(renderMesh, world, camera.projectionMatrix * camera.lookAtMatrix);
 
     // sort the faces by z
     renderMesh.indices.sort((Polygon a, Polygon b) {
@@ -157,17 +161,17 @@ class Scene {
       final shader = ImageShader(renderMesh.image, TileMode.mirror, TileMode.mirror, matrix4);
       paint.shader = shader;
     }
-    // paint.blendMode = BlendMode.color;
-    canvas.drawVertices(vertices, BlendMode.src, paint);
+    paint.blendMode = blendMode;
+    canvas.drawVertices(vertices, BlendMode.srcOver, paint);
   }
 
   void objectCreated(Object object) {
     if (object.mesh.image != null) updateTexture();
-    if (onObjectCreated != null) onObjectCreated(object);
+    if (_onObjectCreated != null) _onObjectCreated(object);
   }
 
   void update() {
-    if (onUpdate != null) onUpdate();
+    if (_onUpdate != null) _onUpdate();
   }
 
   void _getAllMesh(List<Mesh> meshes, Object object) {
