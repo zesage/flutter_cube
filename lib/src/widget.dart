@@ -22,14 +22,21 @@ class Cube extends StatefulWidget {
 class _CubeState extends State<Cube> {
   Scene scene;
   Offset _lastFocalPoint;
+  double _lastZoom;
 
   void _handleScaleStart(ScaleStartDetails details) {
     _lastFocalPoint = details.localFocalPoint;
+    _lastZoom = null;
   }
 
   void _handleScaleUpdate(ScaleUpdateDetails details) {
     scene.camera.trackBall(toVector2(_lastFocalPoint), toVector2(details.localFocalPoint), 1.5);
     _lastFocalPoint = details.localFocalPoint;
+    if (_lastZoom == null) {
+      _lastZoom = scene.camera.zoom;
+    } else {
+      scene.camera.zoom = _lastZoom * details.scale;
+    }
     setState(() {});
   }
 
