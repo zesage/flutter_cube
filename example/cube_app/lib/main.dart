@@ -25,27 +25,52 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+  Scene _scene;
+  Object _cube;
+  AnimationController _controller;
+
   void _onSceneCreated(Scene scene) {
-    scene.camera.position.z = 35;
-    scene.world.add(Object(fileName: 'assets/cube/cube.obj'));
-    final random = Random();
-    for (int i = 0; i < 100; i++) {
+    _scene = scene;
+    scene.camera.position.z = 50;
+    _cube = Object(scale: Vector3(2.0, 2.0, 2.0), fileName: 'assets/cube/cube.obj');
+    final int samples = 100;
+    final double radius = 8;
+    final double offset = 2 / samples;
+    final double increment = pi * (3 - sqrt(5));
+    for (var i = 0; i < samples; i++) {
+      final y = (i * offset - 1) + offset / 2;
+      final r = sqrt(1 - pow(y, 2));
+      final phi = ((i + 1) % samples) * increment;
+      final x = cos(phi) * r;
+      final z = sin(phi) * r;
       final Object cube = Object(
-        position: Vector3(
-          random.nextDouble() * 30 - 15,
-          random.nextDouble() * 30 - 15,
-          random.nextDouble() * 30 - 15,
-        ),
-        rotation: Vector3(
-          random.nextDouble() * 360,
-          random.nextDouble() * 360,
-          random.nextDouble() * 360,
-        ),
+        position: Vector3(x, y, z)..scale(radius),
         fileName: 'assets/cube/cube.obj',
       );
-      scene.world.add(cube);
+      _cube.add(cube);
     }
+    scene.world.add(_cube);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(duration: Duration(milliseconds: 30000), vsync: this)
+      ..addListener(() {
+        if (_cube != null) {
+          _cube.rotation.y = _controller.value * 360;
+          _cube.updateTransform();
+          _scene.update();
+        }
+      })
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
