@@ -28,9 +28,9 @@ class Scene {
   void _calculateVertices(Object o) {
     vertexCount += o.mesh.vertices.length;
     faceCount += o.mesh.indices.length;
-    final int childCount = o.children.length;
-    for (int i = 0; i < childCount; i++) {
-      _calculateVertices(o.children[i]);
+    final List<Object> children = o.children;
+    for (int i = 0; i < children.length; i++) {
+      _calculateVertices(children[i]);
     }
   }
 
@@ -114,8 +114,9 @@ class Scene {
     }
 
     // render children
-    for (Object child in o.children) {
-      _renderObject(renderMesh, child, transform);
+    List<Object> children = o.children;
+    for (int i = 0; i < children.length; i++) {
+      _renderObject(renderMesh, children[i], transform);
     }
   }
 
@@ -162,7 +163,7 @@ class Scene {
       paint.shader = shader;
     }
     paint.blendMode = blendMode;
-    canvas.drawVertices(vertices, BlendMode.srcOver, paint);
+    canvas.drawVertices(vertices, BlendMode.src, paint);
   }
 
   void objectCreated(Object object) {
@@ -176,8 +177,9 @@ class Scene {
 
   void _getAllMesh(List<Mesh> meshes, Object object) {
     meshes.add(object.mesh);
-    for (Object child in object.children) {
-      _getAllMesh(meshes, child);
+    final List<Object> children = object.children;
+    for (int i = 0; i < children.length; i++) {
+      _getAllMesh(meshes, children[i]);
     }
   }
 
