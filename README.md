@@ -1,14 +1,45 @@
-# cube
+# Flutter Cube
 
-A new Flutter package project.
+[![pub package](https://img.shields.io/pub/v/flutter_cube.svg)](https://pub.dev/packages/flutter_cube)
+A Flutter 3D widget that renders Wavefront's object files.
 
 ## Getting Started
 
-This project is a starting point for a Dart
-[package](https://flutter.dev/developing-packages/),
-a library module containing code that can be shared easily across
-multiple Flutter or Dart projects.
+Add flutter_cube as a dependency in your pubspec.yaml file.
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+```yaml
+dependencies:
+  flutter_cube: ^0.0.1
+```
+
+Add Wavefront's object files to assets.
+
+```yaml
+flutter:
+  assets:
+    - assets/cube/cube.obj
+    - assets/cube/cube.mtl
+    - assets/cube/flutter.png
+```
+
+```dart
+import 'package:flutter_cube/flutter_cube.dart';
+... ...
+  
+@override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Cube(
+          onSceneCreated: (Scene scene) {
+            scene.world.add(Object(fileName: 'assets/cube/cube.obj'));
+          },
+        ),
+      ),
+    );
+  }
+```
+
+## Screenshot
+
+![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/screenshot.gif)

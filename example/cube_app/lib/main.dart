@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:cube/cube.dart';
+import 'package:flutter_cube/flutter_cube.dart';
 
 void main() => runApp(MyApp());
 
