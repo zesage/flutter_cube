@@ -1,0 +1,79 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 25.12.2019 12:21:52
+
+newmtl mat_hair
+	Ns 26.580494
+	Ni 1.500000
+	d 1.000000
+	Tr 0.000000
+	Tf 1.000000 1.000000 1.000000 
+	illum 2
+	Ka 0.000000 0.000000 0.000000
+	Kd 0.800000 0.800000 0.800000
+	Ks 0.000000 0.000000 0.000000
+	Ke 0.000000 0.000000 0.000000
+	map_Ka rubyHair_diff.png
+	map_Kd rubyHair_diff.png
+	map_bump file7_Normal_Bump.png
+
+newmtl mat_ruby
+	Ns 26.580494
+	Ni 1.500000
+	d 1.000000
+	Tr 0.000000
+	Tf 1.000000 1.000000 1.000000 
+	illum 2
+	Ka 0.000000 0.000000 0.000000
+	Kd 0.800000 0.800000 0.800000
+	Ks 0.000000 0.000000 0.000000
+	Ke 0.000000 0.000000 0.000000
+	map_Ka ruby_diff.png
+	map_Kd ruby_diff.png
+	map_bump file6_Normal_Bump.png
+
+newmtl mat_rubyEyes
+	Ns 43.710190
+	Ni 1.500000
+	d 1.000000
+	Tr 0.000000
+	Tf 1.000000 1.000000 1.000000 
+	illum 2
+	Ka 0.000000 0.000000 0.000000
+	Kd 0.800000 0.800000 0.800000
+	Ks 1.000000 1.000000 1.000000
+	Ke 0.000000 0.000000 0.000000
+	map_Ka rubyEye_diff.png
+	map_Kd rubyEye_diff.png
+	map_bump rubyEye_norm.png
+	bump rubyEye_norm.png
+
+newmtl mat_eyeAO
+	Ns 0.000000
+	Ni 1.500000
+	d 1.000000
+	Tr 0.000000
+	Tf 1.000000 1.000000 1.000000 
+	illum 2
+	Ka 0.000000 0.000000 0.000000
+	Kd 0.800000 0.800000 0.800000
+	Ks 0.000000 0.000000 0.000000
+	Ke 0.000000 0.000000 0.000000
+	map_Ka eyeOcclusion_diff.png
+	map_Kd eyeOcclusion_diff.png
+	map_d eyeOcclusion_diff.png
+
+newmtl mat_crescentRose
+	Ns 26.580494
+	Ni 1.500000
+	d 1.000000
+	Tr 0.000000
+	Tf 1.000000 1.000000 1.000000 
+	illum 2
+	Ka 0.000000 0.000000 0.000000
+	Kd 0.800000 0.800000 0.800000
+	Ks 0.500000 0.500000 0.500000
+	Ke 0.000000 0.000000 0.000000
+	map_Ka crescentRose_diff.png
+	map_Kd crescentRose_diff.png
+	map_Ks crescentRose_met.png
+	map_bump file2_Normal_Bump.png
