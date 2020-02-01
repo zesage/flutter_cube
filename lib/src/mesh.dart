@@ -24,6 +24,15 @@ class Polygon {
   }
 }
 
+// wolcy97: 2020-01-31 
+int _getVertexIndex(String vIndex)
+{
+  if(int.parse(vIndex) < 0)
+    return int.parse(vIndex) + 1;
+  else
+    return int.parse(vIndex) - 1; 
+}
+
 class Mesh {
   Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.image, Rect textureRect, this.material, this.name}) {
     this.vertices = vertices ?? List<Vector3>();
@@ -106,17 +115,17 @@ Future<List<Mesh>> loadObj(String fileName) async {
           texcoords.add(vt);
         }
         break;
-      case 'f':
+       case 'f':
         if (parts.length >= 4) {
           // eg: f 1/1 2/2 3/3
           final List<String> p1 = parts[1].split('/');
           final List<String> p2 = parts[2].split('/');
           final List<String> p3 = parts[3].split('/');
-          Polygon vi = Polygon(int.parse(p1[0]) - 1, int.parse(p2[0]) - 1, int.parse(p3[0]) - 1);
+          Polygon vi = Polygon(_getVertexIndex(p1[0]), _getVertexIndex(p2[0]), _getVertexIndex(p3[0]));
           vertexIndices.add(vi);
           Polygon ti;
           if ((p1.length >= 2 && p1[1] != '') && (p2.length >= 2 && p2[1] != '') && (p3.length >= 2 && p3[1] != '')) {
-            ti = Polygon(int.parse(p1[1]) - 1, int.parse(p2[1]) - 1, int.parse(p3[1]) - 1);
+            ti = Polygon(_getVertexIndex(p1[1]), _getVertexIndex(p2[1]), _getVertexIndex(p3[1]));
             textureIndices.add(ti);
           } else {
             ti = Polygon(0, 0, 0);
@@ -126,10 +135,10 @@ Future<List<Mesh>> loadObj(String fileName) async {
           // polygon to triangle. eg: f 1/1 2/2 3/3 4/4 ==> f 1/1 2/2 3/3 + f 1/1 3/3 4/4
           for (int i = 4; i < parts.length; i++) {
             final List<String> p3 = parts[i].split('/');
-            vi = Polygon(vi.vertex0, vi.vertex2, int.parse(p3[0]) - 1);
+            vi = Polygon(vi.vertex0, vi.vertex2, _getVertexIndex(p3[0]));
             vertexIndices.add(vi);
             if (p3.length >= 2 && p3[1] != '') {
-              ti = Polygon(ti.vertex0, ti.vertex2, int.parse(p3[1]) - 1);
+              ti = Polygon(ti.vertex0, ti.vertex2, _getVertexIndex(p3[1]));
               textureIndices.add(ti);
             } else {
               textureIndices.add(null);
@@ -190,9 +199,15 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
           face[j] = vertexTexture[key];
           if (face[j] == null) {
             face[j] = newVertices.length;
+            int vIndex = vi[j];
+            if(vIndex < 0) vIndex = vertices.length - 1 + vIndex;
+
+            int tIndex = ti[j];
+            if(tIndex < 0) tIndex = texcoords.length -1 + tIndex;
+
             vertexTexture[key] = face[j];
-            newVertices.add(vertices[vi[j]].clone());
-            newTexcoords.add(texcoords[ti[j]]);
+            newVertices.add(vertices[vIndex].clone());
+            newTexcoords.add(texcoords[tIndex]);
           }
         }
       }
