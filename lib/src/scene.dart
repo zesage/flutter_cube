@@ -48,6 +48,40 @@ class Scene {
     return area <= 0;
   }
 
+  bool _isClippedFace(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz) {
+    // clip if at least one vertex is outside the near and far plane
+    if (az < 0 || az > 1 || bz < 0 || bz > 1 || cz < 0 || cz > 1) return true;
+    // clip if the face's bounding box does not intersect the viewport
+    double left;
+    double right;
+    if (ax < bx) {
+      left = ax;
+      right = bx;
+    } else {
+      left = bx;
+      right = ax;
+    }
+    if (left > cx) left = cx;
+    if (left > 1) return true;
+    if (right < cx) right = cx;
+    if (right < -1) return true;
+
+    double top;
+    double bottom;
+    if (ay < by) {
+      top = ay;
+      bottom = by;
+    } else {
+      top = by;
+      bottom = ay;
+    }
+    if (top > cy) top = cy;
+    if (top > 1) return true;
+    if (bottom < cy) bottom = cy;
+    if (bottom < -1) return true;
+    return false;
+  }
+
   void _renderObject(RenderMesh renderMesh, Object o, Matrix4 transform) {
     transform *= o.transform;
 
@@ -98,8 +132,10 @@ class Scene {
       final double cy = positions[vertex2 * 2 + 1];
       final double cz = positionsZ[vertex2];
       if (!culling || !_isBackFace(ax, ay, bx, by, cx, cy)) {
-        final double sumOfZ = az + bz + cz;
-        renderIndices[indexOffset + i] = Polygon(vertex0, vertex1, vertex2, sumOfZ);
+        if (!_isClippedFace(ax, ay, az, bx, by, bz, cx, cy, cz)) {
+          final double sumOfZ = az + bz + cz;
+          renderIndices[indexOffset + i] = Polygon(vertex0, vertex1, vertex2, sumOfZ);
+        }
       }
     }
     renderMesh.indexCount += indexCount;
