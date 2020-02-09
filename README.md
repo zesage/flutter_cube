@@ -1,6 +1,7 @@
 # Flutter Cube
 
 [![pub package](https://img.shields.io/pub/v/flutter_cube.svg)](https://pub.dev/packages/flutter_cube)
+
 A Flutter 3D widget that renders Wavefront's object files.
 
 ## Getting Started
@@ -9,7 +10,7 @@ Add flutter_cube as a dependency in your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  flutter_cube: ^0.0.1
+  flutter_cube: ^0.0.2
 ```
 
 Add Wavefront's object files to assets.
