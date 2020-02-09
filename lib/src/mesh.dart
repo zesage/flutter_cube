@@ -9,12 +9,11 @@ import 'package:path/path.dart' as path;
 import 'material.dart';
 
 class Polygon {
-  Polygon(this.vertex0, this.vertex1, this.vertex2, [this.sumOfZ = 0, this.isCulled = false]);
+  Polygon(this.vertex0, this.vertex1, this.vertex2, [this.sumOfZ = 0]);
   int vertex0;
   int vertex1;
   int vertex2;
   double sumOfZ;
-  bool isCulled;
   List<int> copyToArray() => [vertex0, vertex1, vertex2];
   void copyFromArray(List<int> array, [int offset = 0]) {
     final int i = offset;
@@ -24,13 +23,12 @@ class Polygon {
   }
 }
 
-// wolcy97: 2020-01-31 
-int _getVertexIndex(String vIndex)
-{
-  if(int.parse(vIndex) < 0)
+// wolcy97: 2020-01-31
+int _getVertexIndex(String vIndex) {
+  if (int.parse(vIndex) < 0)
     return int.parse(vIndex) + 1;
   else
-    return int.parse(vIndex) - 1; 
+    return int.parse(vIndex) - 1;
 }
 
 class Mesh {
@@ -115,7 +113,7 @@ Future<List<Mesh>> loadObj(String fileName) async {
           texcoords.add(vt);
         }
         break;
-       case 'f':
+      case 'f':
         if (parts.length >= 4) {
           // eg: f 1/1 2/2 3/3
           final List<String> p1 = parts[1].split('/');
@@ -200,10 +198,10 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
           if (face[j] == null) {
             face[j] = newVertices.length;
             int vIndex = vi[j];
-            if(vIndex < 0) vIndex = vertices.length - 1 + vIndex;
+            if (vIndex < 0) vIndex = vertices.length - 1 + vIndex;
 
             int tIndex = ti[j];
-            if(tIndex < 0) tIndex = texcoords.length -1 + tIndex;
+            if (tIndex < 0) tIndex = texcoords.length - 1 + tIndex;
 
             vertexTexture[key] = face[j];
             newVertices.add(vertices[vIndex].clone());

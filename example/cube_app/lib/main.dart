@@ -33,7 +33,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   void _onSceneCreated(Scene scene) {
     _scene = scene;
     scene.camera.position.z = 50;
-    _cube = Object(scale: Vector3(2.0, 2.0, 2.0), fileName: 'assets/cube/cube.obj');
+    _cube = Object(scale: Vector3(2.0, 2.0, 2.0), backfaceCulling: false, fileName: 'assets/cube/cube.obj');
     final int samples = 100;
     final double radius = 8;
     final double offset = 2 / samples;

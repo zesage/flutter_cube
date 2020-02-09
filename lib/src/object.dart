@@ -13,6 +13,7 @@ class Object {
     this.scene,
     this.parent,
     this.children,
+    this.backfaceCulling = true,
     String fileName,
   }) {
     if (position != null) position.copyInto(this.position);
@@ -33,7 +34,7 @@ class Object {
         } else if (meshes.length > 1) {
           // multiple objects
           for (Mesh mesh in meshes) {
-            add(Object(name: mesh.name, mesh: mesh, scene: scene));
+            add(Object(name: mesh.name, mesh: mesh, scene: scene, backfaceCulling: backfaceCulling));
           }
         }
         scene?.objectCreated(this);
@@ -66,6 +67,9 @@ class Object {
 
   /// The mesh of this object
   Mesh mesh;
+
+  /// The backface will be culled without rendering.
+  bool backfaceCulling;
 
   /// The transformation of the object in the scene, including position, rotation, and scaling.
   final Matrix4 transform = Matrix4.identity();

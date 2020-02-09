@@ -43,6 +43,11 @@ class Scene {
     return renderMesh;
   }
 
+  bool _isBackFace(double ax, double ay, double bx, double by, double cx, double cy) {
+    double area = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay);
+    return area <= 0;
+  }
+
   void _renderObject(RenderMesh renderMesh, Object o, Matrix4 transform) {
     transform *= o.transform;
 
@@ -61,14 +66,14 @@ class Scene {
       v.setValues(storage3[0], storage3[1], storage3[2], 1.0);
       // apply "model => world => camera => perspective" transform
       v.applyMatrix4(transform);
-      // apply perspective to screen transform
-      applyViewportTransform(v, viewportWidth, viewportHeight);
+      // transform from homonegenous coordinates to the normalized device coordinates，
       final int xIndex = (vertexOffset + i) * 2;
       final int yIndex = xIndex + 1;
       final Float64List storage4 = v.storage;
-      positions[xIndex] = storage4[0]; //v.x;
-      positions[yIndex] = storage4[1]; //v.y;
-      positionsZ[vertexOffset + i] = storage4[2]; //v.z;
+      final double w = storage4[3]; //v.w;
+      positions[xIndex] = storage4[0] / w; //v.x;
+      positions[yIndex] = storage4[1] / w; //v.y;
+      positionsZ[vertexOffset + i] = storage4[2] / w; //v.z;
     }
     renderMesh.vertexCount += vertexCount;
 
@@ -77,15 +82,36 @@ class Scene {
     final List<Polygon> indices = o.mesh.indices;
     final int indexOffset = renderMesh.indexCount;
     final int indexCount = indices.length;
+    final bool culling = o.backfaceCulling;
     for (int i = 0; i < indexCount; i++) {
       final Polygon p = indices[i];
-      final vertex0 = vertexOffset + p.vertex0;
-      final vertex1 = vertexOffset + p.vertex1;
-      final vertex2 = vertexOffset + p.vertex2;
-      final sumOfZ = positionsZ[vertex0] + positionsZ[vertex1] + positionsZ[vertex2];
-      renderIndices[indexOffset + i] = Polygon(vertex0, vertex1, vertex2, sumOfZ);
+      final int vertex0 = vertexOffset + p.vertex0;
+      final int vertex1 = vertexOffset + p.vertex1;
+      final int vertex2 = vertexOffset + p.vertex2;
+      final double ax = positions[vertex0 * 2];
+      final double ay = positions[vertex0 * 2 + 1];
+      final double az = positionsZ[vertex0];
+      final double bx = positions[vertex1 * 2];
+      final double by = positions[vertex1 * 2 + 1];
+      final double bz = positionsZ[vertex1];
+      final double cx = positions[vertex2 * 2];
+      final double cy = positions[vertex2 * 2 + 1];
+      final double cz = positionsZ[vertex2];
+      if (!culling || !_isBackFace(ax, ay, bx, by, cx, cy)) {
+        final double sumOfZ = az + bz + cz;
+        renderIndices[indexOffset + i] = Polygon(vertex0, vertex1, vertex2, sumOfZ);
+      }
     }
     renderMesh.indexCount += indexCount;
+
+    // apply perspective to screen transform
+    for (int i = 0; i < vertexCount; i++) {
+      final int x = (vertexOffset + i) * 2;
+      final int y = x + 1;
+      // remaps coordinates from [-1, 1] to the [0, viewport] space.
+      positions[x] = (1.0 + positions[x]) * viewportWidth / 2;
+      positions[y] = (1.0 - positions[y]) * viewportHeight / 2;
+    }
 
     // add vertex colors to renderMesh
     final Int32List renderColors = renderMesh.colors;
@@ -124,8 +150,20 @@ class Scene {
     final renderMesh = _makeRenderMesh();
     _renderObject(renderMesh, world, camera.projectionMatrix * camera.lookAtMatrix);
 
+    // remove the culled faces and recreate list.
+    final List<Polygon> renderIndices = List<Polygon>();
+    final List<Polygon> rawIndices = renderMesh.indices;
+    renderIndices.length = rawIndices.length;
+    int renderCount = 0;
+    for (int i = 0; i < rawIndices.length; i++) {
+      final Polygon p = rawIndices[i];
+      if (p != null) renderIndices[renderCount++] = p;
+    }
+    renderIndices.length = renderCount;
+    if (renderCount == 0) return;
+
     // sort the faces by z
-    renderMesh.indices.sort((Polygon a, Polygon b) {
+    renderIndices.sort((Polygon a, Polygon b) {
       // return b.sumOfZ.compareTo(a.sumOfZ);
       final double az = a.sumOfZ;
       final double bz = b.sumOfZ;
@@ -135,7 +173,6 @@ class Scene {
     });
 
     // convert Polygon list to Uint16List
-    final List<Polygon> renderIndices = renderMesh.indices;
     final int indexCount = renderIndices.length;
     final Uint16List indices = Uint16List(indexCount * 3);
     for (int i = 0; i < indexCount; i++) {
@@ -209,18 +246,4 @@ class RenderMesh {
   Image image;
   int vertexCount;
   int indexCount;
-}
-
-/// Transform from homonegenous coordinates to the normalized device coordinates，and then transform to viewport.
-void applyViewportTransform(Vector4 v, double viewportWidth, double viewportHeight) {
-  final storage = v.storage;
-  //perspective division,
-  final double w = storage[3];
-  final double x = storage[0] / w;
-  final double y = storage[1] / w;
-  final double z = storage[2] / w;
-  // Remaps coordinates from [-1, 1] to the [0, viewport] space.
-  storage[0] = (1.0 + x) * viewportWidth / 2;
-  storage[1] = (1.0 - y) * viewportHeight / 2;
-  storage[2] = z;
 }
