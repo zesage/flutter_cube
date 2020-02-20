@@ -8,10 +8,12 @@ typedef void SceneCreatedCallback(Scene scene);
 class Cube extends StatefulWidget {
   Cube({
     Key key,
+    this.interactive = true,
     this.onSceneCreated,
     this.onObjectCreated,
   }) : super(key: key);
 
+  final bool interactive;
   final SceneCreatedCallback onSceneCreated;
   final ObjectCreatedCallback onObjectCreated;
 
@@ -52,20 +54,21 @@ class _CubeState extends State<Cube> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        scene.camera.viewportWidth = constraints.maxWidth;
-        scene.camera.viewportHeight = constraints.maxHeight;
-        return GestureDetector(
-          onScaleStart: _handleScaleStart,
-          onScaleUpdate: _handleScaleUpdate,
-          child: CustomPaint(
-            painter: _CubePainter(scene),
-            size: Size(constraints.maxWidth, constraints.maxHeight),
-          ),
-        );
-      },
-    );
+    return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
+      scene.camera.viewportWidth = constraints.maxWidth;
+      scene.camera.viewportHeight = constraints.maxHeight;
+      final customPaint = CustomPaint(
+        painter: _CubePainter(scene),
+        size: Size(constraints.maxWidth, constraints.maxHeight),
+      );
+      return widget.interactive
+          ? GestureDetector(
+              onScaleStart: _handleScaleStart,
+              onScaleUpdate: _handleScaleUpdate,
+              child: customPaint,
+            )
+          : customPaint;
+    });
   }
 }
 
