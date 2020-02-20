@@ -135,7 +135,7 @@ Future<Image> loadImageFromAsset(String fileName) {
 }
 
 /// load texture from asset
-Future<Image> loadTexture(Material material, String basePath) async {
+Future<MapEntry<String, Image>> loadTexture(Material material, String basePath) async {
   // get the texture file name
   if (material == null) return null;
   String fileName = material.mapKa;
@@ -150,7 +150,7 @@ Future<Image> loadTexture(Material material, String basePath) async {
     try {
       image = await loadImageFromAsset(fileName);
     } catch (_) {}
-    if (image != null) return image;
+    if (image != null) return MapEntry(fileName, image);
     dirList.removeAt(0);
   }
   return null;

@@ -32,12 +32,12 @@ int _getVertexIndex(String vIndex) {
 }
 
 class Mesh {
-  Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.texture, Rect textureRect, this.material, this.name}) {
+  Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.texture, Rect textureRect, this.texturePath, this.material, this.name}) {
     this.vertices = vertices ?? List<Vector3>();
     this.texcoords = texcoords ?? List<Offset>();
     this.colors = colors ?? List<Color>();
     this.indices = indices ?? List<Polygon>();
-    this.textureRect = textureRect ?? Rect.fromLTWH(0, 0, 1.0, 1.0);
+    this.textureRect = textureRect ?? Rect.fromLTWH(0, 0, texture?.width?.toDouble() ?? 1.0, texture?.height?.toDouble() ?? 1.0);
   }
   List<Vector3> vertices;
   List<Offset> texcoords;
@@ -45,6 +45,7 @@ class Mesh {
   List<Polygon> indices;
   Image texture;
   Rect textureRect;
+  String texturePath;
   Material material;
   String name;
 }
@@ -220,16 +221,15 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
       newColors[i] = color;
     }
     // load texture image from assets.
-    final Image image = await loadTexture(material, basePath);
-    final Rect textureRect = image == null ? Rect.fromLTWH(0, 0, 10, 10) : Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
+    final MapEntry<String, Image> imageEntry = await loadTexture(material, basePath);
 
     final Mesh mesh = Mesh(
       vertices: newVertices,
       texcoords: newTexcoords,
       indices: newIndices,
       colors: newColors,
-      texture: image,
-      textureRect: textureRect,
+      texture: imageEntry?.value,
+      texturePath: imageEntry?.key,
       material: material,
       name: elementNames[index],
     );
@@ -269,6 +269,26 @@ List<Mesh> normalizeMesh(List<Mesh> meshes) {
 /// Reference：https://observablehq.com/@mourner/simple-rectangle-packing
 ///
 Future<Image> packingTexture(List<Mesh> meshes) async {
+  // generate a key for a mesh.
+  String getMeshKey(Mesh mesh) {
+    if (mesh.texture != null) return mesh.texturePath ?? '' + mesh.textureRect.toString();
+    if (mesh.material != null) return toColor(mesh.material.kd.bgr).toString();
+    return null;
+  }
+
+  // only pack the different textures.
+  final allMeshes = meshes;
+  final textures = Map<String, Mesh>();
+  for (Mesh mesh in allMeshes) {
+    final String key = getMeshKey(mesh);
+    if (key != null) textures.putIfAbsent(key, () => mesh);
+  }
+  // if there is only one texture then return the texture directly.
+  meshes = textures.values.toList();
+  if (meshes.length == 1) return meshes[0].texture;
+  if (meshes.length == 0) return null;
+
+  // packing
   double area = 0;
   double maxWidth = 0;
   for (Mesh mesh in meshes) {
@@ -341,6 +361,15 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
       }
       fromIndex += imageWidth;
       toIndex += textureWidth;
+    }
+  }
+
+  // apply the packed textureRect to all meshes.
+  for (Mesh mesh in allMeshes) {
+    final String key = getMeshKey(mesh);
+    if (key != null) {
+      final Rect rect = textures[key].textureRect;
+      if (rect != null) mesh.textureRect = rect;
     }
   }
 
