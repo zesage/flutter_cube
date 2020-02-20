@@ -1,3 +1,9 @@
+## [0.0.3] - 02/20/2020
+
+- rename mesh.image to mesh.texture
+- update packingTexture to pack only different textures
+- add interactive option to widget
+
 ## [0.0.2] - 02/09/2020
 
 - add face clipping

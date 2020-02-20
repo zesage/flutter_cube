@@ -10,7 +10,7 @@ Add flutter_cube as a dependency in your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  flutter_cube: ^0.0.2
+  flutter_cube: ^0.0.3
 ```
 
 Add Wavefront's object files to assets.
@@ -22,6 +22,8 @@ flutter:
     - assets/cube/cube.mtl
     - assets/cube/flutter.png
 ```
+
+Import and add the Cube widget to your project.
 
 ```dart
 import 'package:flutter_cube/flutter_cube.dart';
