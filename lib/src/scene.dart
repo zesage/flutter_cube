@@ -39,7 +39,7 @@ class Scene {
     faceCount = 0;
     _calculateVertices(world);
     final renderMesh = RenderMesh(vertexCount, faceCount);
-    renderMesh.image = texture;
+    renderMesh.texture = texture;
     return renderMesh;
   }
 
@@ -224,15 +224,15 @@ class Scene {
     final vertices = Vertices.raw(
       VertexMode.triangles,
       renderMesh.positions,
-      textureCoordinates: renderMesh.image == null ? null : renderMesh.texcoords,
+      textureCoordinates: renderMesh.texture == null ? null : renderMesh.texcoords,
       colors: renderMesh.colors,
       indices: indices,
     );
 
     final paint = Paint();
-    if (renderMesh.image != null) {
+    if (renderMesh.texture != null) {
       Float64List matrix4 = new Matrix4.identity().storage;
-      final shader = ImageShader(renderMesh.image, TileMode.mirror, TileMode.mirror, matrix4);
+      final shader = ImageShader(renderMesh.texture, TileMode.mirror, TileMode.mirror, matrix4);
       paint.shader = shader;
     }
     paint.blendMode = blendMode;
@@ -240,7 +240,7 @@ class Scene {
   }
 
   void objectCreated(Object object) {
-    if (object.mesh.image != null) updateTexture();
+    if (object.mesh.texture != null) updateTexture();
     if (_onObjectCreated != null) _onObjectCreated(object);
   }
 
@@ -279,7 +279,7 @@ class RenderMesh {
   Float32List texcoords;
   Int32List colors;
   List<Polygon> indices;
-  Image image;
+  Image texture;
   int vertexCount;
   int indexCount;
 }

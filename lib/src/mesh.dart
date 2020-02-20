@@ -32,7 +32,7 @@ int _getVertexIndex(String vIndex) {
 }
 
 class Mesh {
-  Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.image, Rect textureRect, this.material, this.name}) {
+  Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.texture, Rect textureRect, this.material, this.name}) {
     this.vertices = vertices ?? List<Vector3>();
     this.texcoords = texcoords ?? List<Offset>();
     this.colors = colors ?? List<Color>();
@@ -43,7 +43,7 @@ class Mesh {
   List<Offset> texcoords;
   List<Color> colors;
   List<Polygon> indices;
-  Image image;
+  Image texture;
   Rect textureRect;
   Material material;
   String name;
@@ -228,7 +228,7 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
       texcoords: newTexcoords,
       indices: newIndices,
       colors: newColors,
-      image: image,
+      texture: image,
       textureRect: textureRect,
       material: material,
       name: elementNames[index],
@@ -302,7 +302,7 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
     }
   }
 
-  // get the texture size
+  // get the packed texture size
   int textureWidth = 0;
   int textureHeight = 0;
   for (Mesh mesh in meshes) {
@@ -311,14 +311,14 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
     if (textureHeight < box.top + box.height) textureHeight = (box.top + box.height).ceil();
   }
 
-  // get the pixels from mesh.image
+  // get the pixels from mesh.texture
   final texture = Uint32List(textureWidth * textureHeight);
   for (Mesh mesh in meshes) {
     final int imageWidth = mesh.textureRect.width.toInt();
     final int imageHeight = mesh.textureRect.height.toInt();
     Uint32List pixels;
-    if (mesh.image != null) {
-      final Uint32List data = await getImagePixels(mesh.image);
+    if (mesh.texture != null) {
+      final Uint32List data = await getImagePixels(mesh.texture);
       pixels = data.buffer.asUint32List();
     } else {
       final int length = imageWidth * imageHeight;
@@ -329,10 +329,10 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
       }
     }
 
-    // break if the mesh.image has changed
+    // break if the mesh.texture has changed
     if (mesh.textureRect.right > textureWidth || mesh.textureRect.bottom > textureHeight) break;
 
-    // copy pixels from mesh.image to texture
+    // copy pixels from mesh.texture to texture
     int fromIndex = 0;
     int toIndex = mesh.textureRect.top.toInt() * textureWidth + mesh.textureRect.left.toInt();
     for (int y = 0; y < imageHeight; y++) {
