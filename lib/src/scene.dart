@@ -23,6 +23,7 @@ class Scene {
   ObjectCreatedCallback _onObjectCreated;
   int vertexCount;
   int faceCount;
+  bool _needsUpdateTexture = false;
 
   // calculate the total number of vertices and faces
   void _calculateVertices(Object o) {
@@ -183,6 +184,13 @@ class Scene {
   }
 
   void render(Canvas canvas, Size size) {
+    // check if texture needs to update
+    if (_needsUpdateTexture) {
+      _needsUpdateTexture = false;
+      _updateTexture();
+    }
+
+    // create render mesh from objects
     final renderMesh = _makeRenderMesh();
     _renderObject(renderMesh, world, camera.projectionMatrix * camera.lookAtMatrix);
 
@@ -256,10 +264,16 @@ class Scene {
     }
   }
 
-  void updateTexture() async {
+  void _updateTexture() async {
     final meshes = List<Mesh>();
     _getAllMesh(meshes, world);
     texture = await packingTexture(meshes);
+    update();
+  }
+
+  /// Mark needs update texture
+  void updateTexture() {
+    _needsUpdateTexture = true;
     update();
   }
 }
