@@ -1,3 +1,7 @@
+## [0.0.4] - 03/06/2020
+
+- fix updateTexture not working
+
 ## [0.0.3] - 02/20/2020
 
 - rename mesh.image to mesh.texture
