@@ -45,4 +45,4 @@ import 'package:flutter_cube/flutter_cube.dart';
 
 ## Screenshot
 
-![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/screenshot.gif)    ![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/ruby_rose.gif)
+![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/screenshot.gif)    ![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/ruby_rose.gif)    ![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/planet.gif)
