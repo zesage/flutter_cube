@@ -14,11 +14,13 @@ class Scene {
     camera = Camera();
     world = Object(scene: this);
     blendMode = BlendMode.srcOver;
+    textureBlendMode = BlendMode.src;
   }
   Camera camera;
   Object world;
   Image texture;
   BlendMode blendMode;
+  BlendMode textureBlendMode;
   VoidCallback _onUpdate;
   ObjectCreatedCallback _onObjectCreated;
   int vertexCount;
@@ -84,6 +86,7 @@ class Scene {
   }
 
   void _renderObject(RenderMesh renderMesh, Object o, Matrix4 transform) {
+    if (!o.visiable) return;
     transform *= o.transform;
 
     // apply transform and add vertices to renderMesh
@@ -244,11 +247,11 @@ class Scene {
       paint.shader = shader;
     }
     paint.blendMode = blendMode;
-    canvas.drawVertices(vertices, BlendMode.src, paint);
+    canvas.drawVertices(vertices, textureBlendMode, paint);
   }
 
   void objectCreated(Object object) {
-    if (object.mesh.texture != null) updateTexture();
+    updateTexture();
     if (_onObjectCreated != null) _onObjectCreated(object);
   }
 
