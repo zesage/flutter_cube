@@ -14,6 +14,8 @@ class Object {
     this.parent,
     this.children,
     this.backfaceCulling = true,
+    this.visiable = true,
+    bool normalized = true,
     String fileName,
   }) {
     if (position != null) position.copyInto(this.position);
@@ -29,7 +31,7 @@ class Object {
 
     // load mesh from obj file
     if (fileName != null) {
-      loadObj(fileName).then((List<Mesh> meshes) {
+      loadObj(fileName, normalized).then((List<Mesh> meshes) {
         if (meshes.length == 1) {
           mesh = meshes[0];
         } else if (meshes.length > 1) {
@@ -79,6 +81,9 @@ class Object {
   /// The backface will be culled without rendering.
   bool backfaceCulling;
 
+  /// Is this object visiable.
+  bool visiable;
+
   /// The transformation of the object in the scene, including position, rotation, and scaling.
   final Matrix4 transform = Matrix4.identity();
 
@@ -93,6 +98,11 @@ class Object {
     object.scene = scene;
     object.parent = this;
     children.add(object);
+  }
+
+  /// Remove a child
+  void remove(Object object) {
+    children.remove(object);
   }
 
   /// Find a child matching the name

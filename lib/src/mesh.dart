@@ -53,7 +53,7 @@ class Mesh {
 /// Loading mesh from Wavefront's object file (.obj).
 /// Reference：http://paulbourke.net/dataformats/obj/
 ///
-Future<List<Mesh>> loadObj(String fileName) async {
+Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
   Map<String, Material> materials;
   List<Vector3> vertices = List<Vector3>();
   List<Offset> texcoords = List<Offset>();
@@ -148,8 +148,7 @@ Future<List<Mesh>> loadObj(String fileName) async {
       default:
     }
   }
-
-  return _buildMesh(
+  final meshes = await _buildMesh(
     vertices,
     texcoords,
     vertexIndices,
@@ -160,6 +159,7 @@ Future<List<Mesh>> loadObj(String fileName) async {
     elementOffsets,
     basePath,
   );
+  return normalized ? normalizeMesh(meshes) : meshes;
 }
 
 /// Load the texture image file and rebuild vertices and texcoords to keep the same length.
@@ -236,7 +236,7 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
     meshes.add(mesh);
   }
 
-  return normalizeMesh(meshes);
+  return meshes;
 }
 
 /// Scale the model size to 1
