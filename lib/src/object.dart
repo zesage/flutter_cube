@@ -10,7 +10,7 @@ class Object {
     Vector3 scale,
     this.name,
     this.mesh,
-    this.scene,
+    Scene scene,
     this.parent,
     this.children,
     this.backfaceCulling = true,
@@ -25,6 +25,7 @@ class Object {
     for (Object child in this.children) {
       child.parent = this;
     }
+    this.scene = scene;
 
     // load mesh from obj file
     if (fileName != null) {
@@ -34,13 +35,13 @@ class Object {
         } else if (meshes.length > 1) {
           // multiple objects
           for (Mesh mesh in meshes) {
-            add(Object(name: mesh.name, mesh: mesh, scene: scene, backfaceCulling: backfaceCulling));
+            add(Object(name: mesh.name, mesh: mesh, backfaceCulling: backfaceCulling));
           }
         }
-        scene?.objectCreated(this);
+        this.scene?.objectCreated(this);
       });
     } else {
-      scene?.objectCreated(this);
+      this.scene?.objectCreated(this);
     }
   }
 
@@ -57,7 +58,14 @@ class Object {
   String name;
 
   /// The scene of this object.
-  Scene scene;
+  Scene _scene;
+  Scene get scene => _scene;
+  set scene(Scene value) {
+    _scene = value;
+    for (Object child in children) {
+      child.scene = value;
+    }
+  }
 
   /// The parent of this object.
   Object parent;
