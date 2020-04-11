@@ -14,7 +14,7 @@ class Scene {
     camera = Camera();
     world = Object(scene: this);
     blendMode = BlendMode.srcOver;
-    textureBlendMode = BlendMode.src;
+    textureBlendMode = BlendMode.srcOver;
   }
   Camera camera;
   Object world;

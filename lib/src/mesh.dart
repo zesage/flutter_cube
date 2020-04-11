@@ -213,15 +213,17 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
       newIndices.add(Polygon(face[0], face[1], face[2]));
     }
 
-    // generate color list
     final Material material = materials[elementMaterials[index]];
+    // load texture image from assets.
+    final MapEntry<String, Image> imageEntry = await loadTexture(material, basePath);
+
+    // generate color list
     final List<Color> newColors = List<Color>(newVertices.length);
-    final Color color = material == null ? Color.fromARGB(0, 0, 0, 0) : toColor(material.kd, material.d);
+    // texture mode then set color to transparent.
+    final Color color = material == null || imageEntry != null ? Color.fromARGB(0, 0, 0, 0) : toColor(material.kd, material.d);
     for (int i = 0; i < newColors.length; i++) {
       newColors[i] = color;
     }
-    // load texture image from assets.
-    final MapEntry<String, Image> imageEntry = await loadTexture(material, basePath);
 
     final Mesh mesh = Mesh(
       vertices: newVertices,
@@ -343,7 +345,8 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
     } else {
       final int length = imageWidth * imageHeight;
       pixels = Uint32List(length);
-      final int color = mesh.material == null ? 0 : toColor(mesh.material.kd.bgr).value;
+      // color mode then set texture to transparent.
+      final int color = 0; //mesh.material == null ? 0 : toColor(mesh.material.kd.bgr, mesh.material.d).value;
       for (int i = 0; i < length; i++) {
         pixels[i] = color;
       }
