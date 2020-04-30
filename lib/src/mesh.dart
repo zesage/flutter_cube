@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
-import 'dart:math' as math;
-import 'package:vector_math/vector_math_64.dart';
+
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as path;
+import 'package:vector_math/vector_math_64.dart';
+
 import 'material.dart';
 
 class Polygon {
@@ -32,12 +35,23 @@ int _getVertexIndex(String vIndex) {
 }
 
 class Mesh {
-  Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.texture, Rect textureRect, this.texturePath, this.material, this.name}) {
+  Mesh(
+      {List<Vector3> vertices,
+      List<Offset> texcoords,
+      List<Polygon> indices,
+      List<Color> colors,
+      this.texture,
+      Rect textureRect,
+      this.texturePath,
+      this.material,
+      this.name}) {
     this.vertices = vertices ?? List<Vector3>();
     this.texcoords = texcoords ?? List<Offset>();
     this.colors = colors ?? List<Color>();
     this.indices = indices ?? List<Polygon>();
-    this.textureRect = textureRect ?? Rect.fromLTWH(0, 0, texture?.width?.toDouble() ?? 1.0, texture?.height?.toDouble() ?? 1.0);
+    this.textureRect = textureRect ??
+        Rect.fromLTWH(0, 0, texture?.width?.toDouble() ?? 1.0,
+            texture?.height?.toDouble() ?? 1.0);
   }
   List<Vector3> vertices;
   List<Offset> texcoords;
@@ -53,7 +67,8 @@ class Mesh {
 /// Loading mesh from Wavefront's object file (.obj).
 /// Reference：http://paulbourke.net/dataformats/obj/
 ///
-Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
+Future<List<Mesh>> loadObj(
+    String fileName, bool normalized, bool isAsset) async {
   Map<String, Material> materials;
   List<Vector3> vertices = List<Vector3>();
   List<Offset> texcoords = List<Offset>();
@@ -67,8 +82,14 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
   String groupName = '';
   String basePath = path.dirname(fileName);
 
-  // load obj data from asset.
-  final data = await rootBundle.loadString(fileName);
+  var data;
+  if (isAsset) {
+    // load obj data from asset.
+    data = await rootBundle.loadString(fileName);
+  } else {
+    // load obj data from file.
+    data = await File(fileName).readAsString();
+  }
   final lines = data.split('\n');
   for (var line in lines) {
     List<String> parts = line.trim().split(RegExp(r"\s+"));
@@ -83,7 +104,8 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
         // material name from material library. eg: usemtl red
         if (parts.length >= 2) materialName = parts[1];
         // create a new mesh element
-        final String elementName = objectlName ?? groupName ?? materialName ?? '';
+        final String elementName =
+            objectlName ?? groupName ?? materialName ?? '';
         elementNames.add(elementName);
         elementMaterials.add(materialName);
         elementOffsets.add(vertexIndices.length);
@@ -99,7 +121,8 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
       case 'v':
         // a geometric vertex and its x y z coordinates. eg: v 0.000000 2.000000 0.000000
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           vertices.add(v);
         }
         break;
@@ -120,11 +143,15 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
           final List<String> p1 = parts[1].split('/');
           final List<String> p2 = parts[2].split('/');
           final List<String> p3 = parts[3].split('/');
-          Polygon vi = Polygon(_getVertexIndex(p1[0]), _getVertexIndex(p2[0]), _getVertexIndex(p3[0]));
+          Polygon vi = Polygon(_getVertexIndex(p1[0]), _getVertexIndex(p2[0]),
+              _getVertexIndex(p3[0]));
           vertexIndices.add(vi);
           Polygon ti;
-          if ((p1.length >= 2 && p1[1] != '') && (p2.length >= 2 && p2[1] != '') && (p3.length >= 2 && p3[1] != '')) {
-            ti = Polygon(_getVertexIndex(p1[1]), _getVertexIndex(p2[1]), _getVertexIndex(p3[1]));
+          if ((p1.length >= 2 && p1[1] != '') &&
+              (p2.length >= 2 && p2[1] != '') &&
+              (p3.length >= 2 && p3[1] != '')) {
+            ti = Polygon(_getVertexIndex(p1[1]), _getVertexIndex(p2[1]),
+                _getVertexIndex(p3[1]));
             textureIndices.add(ti);
           } else {
             ti = Polygon(0, 0, 0);
@@ -163,11 +190,22 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
 }
 
 /// Load the texture image file and rebuild vertices and texcoords to keep the same length.
-Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, List<Polygon> vertexIndices, List<Polygon> textureIndices, Map<String, Material> materials, List<String> elementNames, List<String> elementMaterials, List<int> elementOffsets, String basePath) async {
+Future<List<Mesh>> _buildMesh(
+    List<Vector3> vertices,
+    List<Offset> texcoords,
+    List<Polygon> vertexIndices,
+    List<Polygon> textureIndices,
+    Map<String, Material> materials,
+    List<String> elementNames,
+    List<String> elementMaterials,
+    List<int> elementOffsets,
+    String basePath) async {
   final List<Mesh> meshes = List<Mesh>();
   for (int index = 0; index < elementOffsets.length; index++) {
     int faceStart = elementOffsets[index];
-    int faceEnd = (index + 1 < elementOffsets.length) ? elementOffsets[index + 1] : vertexIndices.length;
+    int faceEnd = (index + 1 < elementOffsets.length)
+        ? elementOffsets[index + 1]
+        : vertexIndices.length;
 
     final newVertices = List<Vector3>();
     final newIndices = List<Polygon>();
@@ -215,12 +253,15 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
 
     final Material material = materials[elementMaterials[index]];
     // load texture image from assets.
-    final MapEntry<String, Image> imageEntry = await loadTexture(material, basePath);
+    final MapEntry<String, Image> imageEntry =
+        await loadTexture(material, basePath);
 
     // generate color list
     final List<Color> newColors = List<Color>(newVertices.length);
     // texture mode then set color to transparent.
-    final Color color = material == null || imageEntry != null ? Color.fromARGB(0, 0, 0, 0) : toColor(material.kd, material.d);
+    final Color color = material == null || imageEntry != null
+        ? Color.fromARGB(0, 0, 0, 0)
+        : toColor(material.kd, material.d);
     for (int i = 0; i < newColors.length; i++) {
       newColors[i] = color;
     }
@@ -273,7 +314,8 @@ List<Mesh> normalizeMesh(List<Mesh> meshes) {
 Future<Image> packingTexture(List<Mesh> meshes) async {
   // generate a key for a mesh.
   String getMeshKey(Mesh mesh) {
-    if (mesh.texture != null) return mesh.texturePath ?? '' + mesh.textureRect.toString();
+    if (mesh.texture != null)
+      return mesh.texturePath ?? '' + mesh.textureRect.toString();
     if (mesh.material != null) return toColor(mesh.material.kd.bgr).toString();
     return null;
   }
@@ -297,7 +339,8 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
     area += mesh.textureRect.width * mesh.textureRect.height;
     maxWidth = math.max(maxWidth, mesh.textureRect.width);
   }
-  meshes.sort((Mesh a, Mesh b) => b.textureRect.height.compareTo(a.textureRect.height));
+  meshes.sort(
+      (Mesh a, Mesh b) => b.textureRect.height.compareTo(a.textureRect.height));
 
   final double startWidth = math.max(math.sqrt(area / 0.95), maxWidth);
   final List<Rect> spaces = List<Rect>();
@@ -308,17 +351,22 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
       final Rect block = mesh.textureRect;
       final Rect space = spaces[i];
       if (block.width > space.width || block.height > space.height) continue;
-      mesh.textureRect = Rect.fromLTWH(space.left, space.top, block.width, block.height);
+      mesh.textureRect =
+          Rect.fromLTWH(space.left, space.top, block.width, block.height);
       if (block.width == space.width && block.height == space.height) {
         final Rect last = spaces.removeLast();
         if (i < spaces.length) spaces[i] = last;
       } else if (block.height == space.height) {
-        spaces[i] = Rect.fromLTWH(space.left + block.width, space.top, space.width - block.width, space.height);
+        spaces[i] = Rect.fromLTWH(space.left + block.width, space.top,
+            space.width - block.width, space.height);
       } else if (block.width == space.width) {
-        spaces[i] = Rect.fromLTWH(space.left, space.top + block.height, space.width, space.height - block.height);
+        spaces[i] = Rect.fromLTWH(space.left, space.top + block.height,
+            space.width, space.height - block.height);
       } else {
-        spaces.add(Rect.fromLTWH(space.left + block.width, space.top, space.width - block.width, block.height));
-        spaces[i] = Rect.fromLTWH(space.left, space.top + block.height, space.width, space.height - block.height);
+        spaces.add(Rect.fromLTWH(space.left + block.width, space.top,
+            space.width - block.width, block.height));
+        spaces[i] = Rect.fromLTWH(space.left, space.top + block.height,
+            space.width, space.height - block.height);
       }
       break;
     }
@@ -329,8 +377,10 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
   int textureHeight = 0;
   for (Mesh mesh in meshes) {
     final Rect box = mesh.textureRect;
-    if (textureWidth < box.left + box.width) textureWidth = (box.left + box.width).ceil();
-    if (textureHeight < box.top + box.height) textureHeight = (box.top + box.height).ceil();
+    if (textureWidth < box.left + box.width)
+      textureWidth = (box.left + box.width).ceil();
+    if (textureHeight < box.top + box.height)
+      textureHeight = (box.top + box.height).ceil();
   }
 
   // get the pixels from mesh.texture
@@ -346,18 +396,21 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
       final int length = imageWidth * imageHeight;
       pixels = Uint32List(length);
       // color mode then set texture to transparent.
-      final int color = 0; //mesh.material == null ? 0 : toColor(mesh.material.kd.bgr, mesh.material.d).value;
+      final int color =
+          0; //mesh.material == null ? 0 : toColor(mesh.material.kd.bgr, mesh.material.d).value;
       for (int i = 0; i < length; i++) {
         pixels[i] = color;
       }
     }
 
     // break if the mesh.texture has changed
-    if (mesh.textureRect.right > textureWidth || mesh.textureRect.bottom > textureHeight) break;
+    if (mesh.textureRect.right > textureWidth ||
+        mesh.textureRect.bottom > textureHeight) break;
 
     // copy pixels from mesh.texture to texture
     int fromIndex = 0;
-    int toIndex = mesh.textureRect.top.toInt() * textureWidth + mesh.textureRect.left.toInt();
+    int toIndex = mesh.textureRect.top.toInt() * textureWidth +
+        mesh.textureRect.left.toInt();
     for (int y = 0; y < imageHeight; y++) {
       for (int x = 0; x < imageWidth; x++) {
         texture[toIndex + x] = pixels[fromIndex + x];
@@ -377,7 +430,8 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
   }
 
   final c = Completer<Image>();
-  decodeImageFromPixels(texture.buffer.asUint8List(), textureWidth, textureHeight, PixelFormat.rgba8888, (image) {
+  decodeImageFromPixels(texture.buffer.asUint8List(), textureWidth,
+      textureHeight, PixelFormat.rgba8888, (image) {
     c.complete(image);
   });
   return c.future;
