@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -38,11 +39,16 @@ class Material {
 /// Loading material from Material Library File (.mtl).
 /// Reference：http://paulbourke.net/dataformats/mtl/
 ///
-Future<Map<String, Material>> loadMtl(String fileName) async {
+Future<Map<String, Material>> loadMtl(String fileName,
+    {bool isAsset = true}) async {
   final materials = Map<String, Material>();
   String data;
   try {
-    data = await rootBundle.loadString(fileName);
+    if (isAsset) {
+      data = await rootBundle.loadString(fileName);
+    } else {
+      data = await File(fileName).readAsString();
+    }
   } catch (_) {
     return materials;
   }
@@ -61,25 +67,29 @@ Future<Map<String, Material>> loadMtl(String fileName) async {
         break;
       case 'Ka':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.ka = v;
         }
         break;
       case 'Kd':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.kd = v;
         }
         break;
       case 'Ks':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.ks = v;
         }
         break;
       case 'Ke':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.ke = v;
         }
         break;
@@ -120,10 +130,17 @@ Future<Map<String, Material>> loadMtl(String fileName) async {
 }
 
 /// load an image from asset
-Future<Image> loadImageFromAsset(String fileName) {
+Future<Image> loadImageFromAsset(String fileName, [bool isAsset = true]) {
   final c = Completer<Image>();
-  rootBundle.load(fileName).then((data) {
-    instantiateImageCodec(data.buffer.asUint8List()).then((codec) {
+  var dataFuture;
+  if (isAsset) {
+    dataFuture =
+        rootBundle.load(fileName).then((data) => data.buffer.asUint8List());
+  } else {
+    dataFuture = File(fileName).readAsBytes();
+  }
+  dataFuture.then((data) {
+    instantiateImageCodec(data).then((codec) {
       codec.getNextFrame().then((frameInfo) {
         c.complete(frameInfo.image);
       });
@@ -135,7 +152,8 @@ Future<Image> loadImageFromAsset(String fileName) {
 }
 
 /// load texture from asset
-Future<MapEntry<String, Image>> loadTexture(Material material, String basePath) async {
+Future<MapEntry<String, Image>> loadTexture(Material material, String basePath,
+    {bool isAsset = true}) async {
   // get the texture file name
   if (material == null) return null;
   String fileName = material.mapKa;
@@ -148,7 +166,7 @@ Future<MapEntry<String, Image>> loadTexture(Material material, String basePath) 
   while (dirList.length > 0) {
     fileName = path.join(basePath, path.joinAll(dirList));
     try {
-      image = await loadImageFromAsset(fileName);
+      image = await loadImageFromAsset(fileName, isAsset);
     } catch (_) {}
     if (image != null) return MapEntry(fileName, image);
     dirList.removeAt(0);
@@ -169,5 +187,6 @@ Future<Uint32List> getImagePixels(Image image) async {
 
 /// Convert Vector3 to Color
 Color toColor(Vector3 v, [double opacity = 1.0]) {
-  return Color.fromRGBO((v.r * 255).toInt(), (v.g * 255).toInt(), (v.b * 255).toInt(), opacity);
+  return Color.fromRGBO(
+      (v.r * 255).toInt(), (v.g * 255).toInt(), (v.b * 255).toInt(), opacity);
 }
