@@ -192,16 +192,23 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
 
 /// Load the texture image file and rebuild vertices and texcoords to keep the same length.
 Future<List<Mesh>> _buildMesh(
-    List<Vector3> vertices,
-    List<Offset> texcoords,
-    List<Polygon> vertexIndices,
-    List<Polygon> textureIndices,
-    Map<String, Material> materials,
-    List<String> elementNames,
-    List<String> elementMaterials,
-    List<int> elementOffsets,
-    String basePath,
-    bool isAsset) async {
+  List<Vector3> vertices,
+  List<Offset> texcoords,
+  List<Polygon> vertexIndices,
+  List<Polygon> textureIndices,
+  Map<String, Material> materials,
+  List<String> elementNames,
+  List<String> elementMaterials,
+  List<int> elementOffsets,
+  String basePath,
+  bool isAsset,
+) async {
+  if (elementOffsets.length == 0) {
+    elementNames.add('');
+    elementMaterials.add('');
+    elementOffsets.add(0);
+  }
+
   final List<Mesh> meshes = List<Mesh>();
   for (int index = 0; index < elementOffsets.length; index++) {
     int faceStart = elementOffsets[index];
@@ -253,7 +260,8 @@ Future<List<Mesh>> _buildMesh(
       newIndices.add(Polygon(face[0], face[1], face[2]));
     }
 
-    final Material material = materials[elementMaterials[index]];
+    final Material material =
+        (materials != null) ? materials[elementMaterials[index]] : null;
     // load texture image from assets.
     final MapEntry<String, Image> imageEntry =
         await loadTexture(material, basePath, isAsset: isAsset);
@@ -261,9 +269,11 @@ Future<List<Mesh>> _buildMesh(
     // generate color list
     final List<Color> newColors = List<Color>(newVertices.length);
     // texture mode then set color to transparent.
-    final Color color = material == null || imageEntry != null
+    final Color color = (imageEntry != null)
         ? Color.fromARGB(0, 0, 0, 0)
-        : toColor(material.kd, material.d);
+        : (material == null)
+            ? Color.fromARGB(255, 255, 255, 255)
+            : toColor(material.kd, material.d);
     for (int i = 0; i < newColors.length; i++) {
       newColors[i] = color;
     }
