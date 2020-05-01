@@ -130,7 +130,7 @@ Future<Map<String, Material>> loadMtl(String fileName,
 }
 
 /// load an image from asset
-Future<Image> loadImageFromAsset(String fileName, [bool isAsset = true]) {
+Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
   final c = Completer<Image>();
   var dataFuture;
   if (isAsset) {
@@ -166,7 +166,7 @@ Future<MapEntry<String, Image>> loadTexture(Material material, String basePath,
   while (dirList.length > 0) {
     fileName = path.join(basePath, path.joinAll(dirList));
     try {
-      image = await loadImageFromAsset(fileName, isAsset);
+      image = await loadImageFromAsset(fileName, isAsset: isAsset);
     } catch (_) {}
     if (image != null) return MapEntry(fileName, image);
     dirList.removeAt(0);
