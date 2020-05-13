@@ -32,11 +32,12 @@ int _getVertexIndex(String vIndex) {
 }
 
 class Mesh {
-  Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.texture, Rect textureRect, this.texturePath, this.material, this.name}) {
+  Mesh({List<Vector3> vertices, List<Offset> texcoords, List<Polygon> indices, List<Color> colors, this.texture, Rect textureRect, this.texturePath, Material material, this.name}) {
     this.vertices = vertices ?? List<Vector3>();
     this.texcoords = texcoords ?? List<Offset>();
     this.colors = colors ?? List<Color>();
     this.indices = indices ?? List<Polygon>();
+    this.material = material ?? Material();
     this.textureRect = textureRect ?? Rect.fromLTWH(0, 0, texture?.width?.toDouble() ?? 1.0, texture?.height?.toDouble() ?? 1.0);
   }
   List<Vector3> vertices;
@@ -226,7 +227,7 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
     // generate color list
     final List<Color> newColors = List<Color>(newVertices.length);
     // texture mode then set color to transparent.
-    final Color color = (imageEntry != null) ? Color.fromARGB(0, 0, 0, 0) : (material == null) ? Color.fromARGB(255, 255, 255, 255) : toColor(material.kd, material.d);
+    final Color color = (imageEntry != null) ? Color.fromARGB(0, 0, 0, 0) : (material == null) ? Color.fromARGB(255, 255, 255, 255) : toColor(material.diffuse, material.opacity);
     for (int i = 0; i < newColors.length; i++) {
       newColors[i] = color;
     }
@@ -245,6 +246,11 @@ Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, Li
   }
 
   return meshes;
+}
+
+/// Calculate normal vector
+Vector3 normalVector(Vector3 a, Vector3 b, Vector3 c) {
+  return (b - a).cross(c - a).normalized();
 }
 
 /// Scale the model size to 1
@@ -280,7 +286,7 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
   // generate a key for a mesh.
   String getMeshKey(Mesh mesh) {
     if (mesh.texture != null) return mesh.texturePath ?? '' + mesh.textureRect.toString();
-    if (mesh.material != null) return toColor(mesh.material.kd.bgr).toString();
+    if (mesh.material != null) return toColor(mesh.material.diffuse.bgr).toString();
     return null;
   }
 

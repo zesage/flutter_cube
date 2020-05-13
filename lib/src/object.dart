@@ -14,6 +14,7 @@ class Object {
     this.parent,
     this.children,
     this.backfaceCulling = true,
+    this.lighting = false,
     this.visiable = true,
     bool normalized = true,
     String fileName,
@@ -37,7 +38,7 @@ class Object {
         } else if (meshes.length > 1) {
           // multiple objects
           for (Mesh mesh in meshes) {
-            add(Object(name: mesh.name, mesh: mesh, backfaceCulling: backfaceCulling));
+            add(Object(name: mesh.name, mesh: mesh, backfaceCulling: backfaceCulling, lighting: lighting));
           }
         }
         this.scene?.objectCreated(this);
@@ -80,6 +81,9 @@ class Object {
 
   /// The backface will be culled without rendering.
   bool backfaceCulling;
+
+  /// Enable basic lighting, default to false.
+  bool lighting;
 
   /// Is this object visiable.
   bool visiable;
