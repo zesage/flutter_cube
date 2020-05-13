@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'dart:typed_data';
+import 'package:flutter_cube/flutter_cube.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'object.dart';
 import 'camera.dart';
 import 'mesh.dart';
+import 'material.dart';
+import 'light.dart';
 
 typedef ObjectCreatedCallback = void Function(Object object);
 
@@ -11,11 +14,14 @@ class Scene {
   Scene({VoidCallback onUpdate, ObjectCreatedCallback onObjectCreated}) {
     this._onUpdate = onUpdate;
     this._onObjectCreated = onObjectCreated;
+    light = Light();
     camera = Camera();
     world = Object(scene: this);
     blendMode = BlendMode.srcOver;
     textureBlendMode = BlendMode.srcOver;
   }
+
+  Light light;
   Camera camera;
   Object world;
   Image texture;
@@ -85,9 +91,10 @@ class Scene {
     return false;
   }
 
-  void _renderObject(RenderMesh renderMesh, Object o, Matrix4 transform) {
+  void _renderObject(RenderMesh renderMesh, Object o, Matrix4 model, Matrix4 view, Matrix4 projection) {
     if (!o.visiable) return;
-    transform *= o.transform;
+    model *= o.transform;
+    final Matrix4 transform = projection * view * model;
 
     // apply transform and add vertices to renderMesh
     final double viewportWidth = camera.viewportWidth;
@@ -144,6 +151,45 @@ class Scene {
     }
     renderMesh.indexCount += indexCount;
 
+    if (o.lighting) {
+      final Int32List renderColors = renderMesh.colors;
+      final Matrix4 vertexTransform = model;
+      final Matrix4 normalTransform = (model.clone()..invert()).transposed();
+      final Vector3 viewPosition = camera.position;
+      final Material material = o.mesh.material;
+      final Vector3 a = Vector3.zero();
+      final Vector3 b = Vector3.zero();
+      final Vector3 c = Vector3.zero();
+
+      for (int i = 0; i < indexCount; i++) {
+        // check if the face is clipped
+        if (renderIndices[indexOffset + i] != null) {
+          final Polygon p = indices[i];
+          a.setFrom(vertices[p.vertex0]);
+          b.setFrom(vertices[p.vertex1]);
+          c.setFrom(vertices[p.vertex2]);
+          final Vector3 normal = normalVector(a, b, c)
+            ..applyMatrix4(normalTransform)
+            ..normalize();
+          a.applyMatrix4(vertexTransform);
+          b.applyMatrix4(vertexTransform);
+          c.applyMatrix4(vertexTransform);
+
+          renderColors[vertexOffset + p.vertex0] = light.shading(viewPosition, a, normal, material).value;
+          renderColors[vertexOffset + p.vertex1] = light.shading(viewPosition, b, normal, material).value;
+          renderColors[vertexOffset + p.vertex2] = light.shading(viewPosition, c, normal, material).value;
+        }
+      }
+    } else {
+      // add vertex colors to renderMesh
+      final Int32List renderColors = renderMesh.colors;
+      final List<Color> colors = o.mesh.colors;
+      final int colorCount = colors.length;
+      for (int i = 0; i < colorCount; i++) {
+        renderColors[vertexOffset + i] = colors[i].value;
+      }
+    }
+
     // apply perspective to screen transform
     for (int i = 0; i < vertexCount; i++) {
       final int x = (vertexOffset + i) * 2;
@@ -151,14 +197,6 @@ class Scene {
       // remaps coordinates from [-1, 1] to the [0, viewport] space.
       positions[x] = (1.0 + positions[x]) * viewportWidth / 2;
       positions[y] = (1.0 - positions[y]) * viewportHeight / 2;
-    }
-
-    // add vertex colors to renderMesh
-    final Int32List renderColors = renderMesh.colors;
-    final List<Color> colors = o.mesh.colors;
-    final int colorCount = colors.length;
-    for (int i = 0; i < colorCount; i++) {
-      renderColors[vertexOffset + i] = colors[i].value;
     }
 
     // add texture coordinates to renderMesh
@@ -182,7 +220,7 @@ class Scene {
     // render children
     List<Object> children = o.children;
     for (int i = 0; i < children.length; i++) {
-      _renderObject(renderMesh, children[i], transform);
+      _renderObject(renderMesh, children[i], model, view, projection);
     }
   }
 
@@ -195,7 +233,7 @@ class Scene {
 
     // create render mesh from objects
     final renderMesh = _makeRenderMesh();
-    _renderObject(renderMesh, world, camera.projectionMatrix * camera.lookAtMatrix);
+    _renderObject(renderMesh, world, Matrix4.identity(), camera.lookAtMatrix, camera.projectionMatrix);
 
     // remove the culled faces and recreate list.
     final List<Polygon> renderIndices = List<Polygon>();
