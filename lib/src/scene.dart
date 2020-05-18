@@ -184,9 +184,16 @@ class Scene {
       // add vertex colors to renderMesh
       final Int32List renderColors = renderMesh.colors;
       final List<Color> colors = o.mesh.colors;
-      final int colorCount = colors.length;
-      for (int i = 0; i < colorCount; i++) {
-        renderColors[vertexOffset + i] = colors[i].value;
+      final int colorCount = o.mesh.vertices.length;
+      if (colorCount != o.mesh.colors.length) {
+        final int colorValue = (o.mesh.texture != null) ? Color.fromARGB(0, 0, 0, 0).value : toColor(o.mesh.material.diffuse, o.mesh.material.opacity).value;
+        for (int i = 0; i < colorCount; i++) {
+          renderColors[vertexOffset + i] = colorValue;
+        }
+      } else {
+        for (int i = 0; i < colorCount; i++) {
+          renderColors[vertexOffset + i] = colors[i].value;
+        }
       }
     }
 
@@ -200,21 +207,30 @@ class Scene {
     }
 
     // add texture coordinates to renderMesh
-    final int imageWidth = o.mesh.textureRect.width.toInt();
-    final int imageHeight = o.mesh.textureRect.height.toInt();
-    final double imageLeft = o.mesh.textureRect.left;
-    final double imageTop = o.mesh.textureRect.top;
+    final int texcoordCount = o.mesh.vertices.length;
     final Float32List renderTexcoords = renderMesh.texcoords;
-    final List<Offset> texcoords = o.mesh.texcoords;
-    final int texcoordCount = texcoords.length;
-    for (int i = 0; i < texcoordCount; i++) {
-      final Offset t = texcoords[i];
-      final double x = t.dx * imageWidth + imageLeft;
-      final double y = (1.0 - t.dy) * imageHeight + imageTop;
-      final int xIndex = (vertexOffset + i) * 2;
-      final int yIndex = xIndex + 1;
-      renderTexcoords[xIndex] = x;
-      renderTexcoords[yIndex] = y;
+    if (o.mesh.texture != null && o.mesh.texcoords.length == texcoordCount) {
+      final int imageWidth = o.mesh.textureRect.width.toInt();
+      final int imageHeight = o.mesh.textureRect.height.toInt();
+      final double imageLeft = o.mesh.textureRect.left;
+      final double imageTop = o.mesh.textureRect.top;
+      final List<Offset> texcoords = o.mesh.texcoords;
+      for (int i = 0; i < texcoordCount; i++) {
+        final Offset t = texcoords[i];
+        final double x = t.dx * imageWidth + imageLeft;
+        final double y = (1.0 - t.dy) * imageHeight + imageTop;
+        final int xIndex = (vertexOffset + i) * 2;
+        final int yIndex = xIndex + 1;
+        renderTexcoords[xIndex] = x;
+        renderTexcoords[yIndex] = y + i / texcoordCount / 10;
+      }
+    } else {
+      for (int i = 0; i < texcoordCount; i++) {
+        final int xIndex = (vertexOffset + i) * 2;
+        final int yIndex = xIndex + 1;
+        renderTexcoords[xIndex] = 0;
+        renderTexcoords[yIndex] = 0;
+      }
     }
 
     // render children
