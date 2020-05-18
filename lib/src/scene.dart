@@ -222,7 +222,7 @@ class Scene {
         final int xIndex = (vertexOffset + i) * 2;
         final int yIndex = xIndex + 1;
         renderTexcoords[xIndex] = x;
-        renderTexcoords[yIndex] = y + i / texcoordCount / 10;
+        renderTexcoords[yIndex] = y;
       }
     } else {
       for (int i = 0; i < texcoordCount; i++) {
