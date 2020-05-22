@@ -262,7 +262,7 @@ void _rebuildVertices(List<Vector3> vertices, List<Offset> texcoords, List<Polyg
   if (texcoordsCount == 0) return;
   List<Vector3> newVertices = List<Vector3>();
   List<Offset> newTexcoords = List<Offset>();
-  List<int> indexMap = List<int>(vertices.length * texcoordsCount);
+  HashMap<int, int> indexMap = HashMap<int, int>();
   for (int i = 0; i < vertexIndices.length; i++) {
     List<int> vi = vertexIndices[i].copyToArray();
     List<int> ti = textureIndices[i].copyToArray();
