@@ -9,27 +9,27 @@ import 'dart:ui';
 class Material {
   Material()
       : name = '',
-        ka = Vector3.zero(),
-        kd = Vector3.zero(),
-        ks = Vector3.zero(),
+        ambient = Vector3.all(0.1),
+        diffuse = Vector3.all(0.8),
+        specular = Vector3.all(0.5),
         ke = Vector3.zero(),
         tf = Vector3.zero(),
         mapKa = '',
         mapKd = '',
         mapKe = '',
-        ns = 0,
+        shininess = 0,
         ni = 0,
-        d = 0,
+        opacity = 1.0,
         illum = 0;
   String name;
-  Vector3 ka;
-  Vector3 kd;
-  Vector3 ks;
+  Vector3 ambient;
+  Vector3 diffuse;
+  Vector3 specular;
   Vector3 ke;
   Vector3 tf;
-  double ns;
+  double shininess;
   double ni;
-  double d;
+  double opacity;
   int illum;
   String mapKa;
   String mapKd;
@@ -69,21 +69,21 @@ Future<Map<String, Material>> loadMtl(String fileName,
         if (parts.length >= 4) {
           final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
               double.parse(parts[3]));
-          material.ka = v;
+          material.ambient = v;
         }
         break;
       case 'Kd':
         if (parts.length >= 4) {
           final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
               double.parse(parts[3]));
-          material.kd = v;
+          material.diffuse = v;
         }
         break;
       case 'Ks':
         if (parts.length >= 4) {
           final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
               double.parse(parts[3]));
-          material.ks = v;
+          material.specular = v;
         }
         break;
       case 'Ke':
@@ -105,7 +105,7 @@ Future<Map<String, Material>> loadMtl(String fileName,
         break;
       case 'Ns':
         if (parts.length >= 2) {
-          material.ns = double.parse(parts[1]);
+          material.shininess = double.parse(parts[1]);
         }
         break;
       case 'Ni':
@@ -115,7 +115,7 @@ Future<Map<String, Material>> loadMtl(String fileName,
         break;
       case 'd':
         if (parts.length >= 2) {
-          material.d = double.parse(parts[1]);
+          material.opacity = double.parse(parts[1]);
         }
         break;
       case 'illum':
@@ -189,4 +189,9 @@ Future<Uint32List> getImagePixels(Image image) async {
 Color toColor(Vector3 v, [double opacity = 1.0]) {
   return Color.fromRGBO(
       (v.r * 255).toInt(), (v.g * 255).toInt(), (v.b * 255).toInt(), opacity);
+}
+
+/// Convert Color to Vector3
+Vector3 fromColor(Color color) {
+  return Vector3(color.red / 255, color.green / 255, color.blue / 255);
 }

@@ -43,12 +43,13 @@ class Mesh {
       this.texture,
       Rect textureRect,
       this.texturePath,
-      this.material,
+      Material material,
       this.name}) {
     this.vertices = vertices ?? List<Vector3>();
     this.texcoords = texcoords ?? List<Offset>();
     this.colors = colors ?? List<Color>();
     this.indices = indices ?? List<Polygon>();
+    this.material = material ?? Material();
     this.textureRect = textureRect ??
         Rect.fromLTWH(0, 0, texture?.width?.toDouble() ?? 1.0,
             texture?.height?.toDouble() ?? 1.0);
@@ -153,11 +154,7 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
             ti = Polygon(_getVertexIndex(p1[1]), _getVertexIndex(p2[1]),
                 _getVertexIndex(p3[1]));
             textureIndices.add(ti);
-          } else {
-            ti = Polygon(0, 0, 0);
-            textureIndices.add(null);
           }
-
           // polygon to triangle. eg: f 1/1 2/2 3/3 4/4 ==> f 1/1 2/2 3/3 + f 1/1 3/3 4/4
           for (int i = 4; i < parts.length; i++) {
             final List<String> p3 = parts[i].split('/');
@@ -166,8 +163,6 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
             if (p3.length >= 2 && p3[1] != '') {
               ti = Polygon(ti.vertex0, ti.vertex2, _getVertexIndex(p3[1]));
               textureIndices.add(ti);
-            } else {
-              textureIndices.add(null);
             }
           }
         }
@@ -216,73 +211,46 @@ Future<List<Mesh>> _buildMesh(
         ? elementOffsets[index + 1]
         : vertexIndices.length;
 
-    final newVertices = List<Vector3>();
-    final newIndices = List<Polygon>();
+    var newVertices = List<Vector3>();
+    var newTexcoords = List<Offset>();
+    var newIndices = List<Polygon>();
+    var newTextureIndices = List<Polygon>();
 
-    // match "vertices" and "texcoords" lengths.
-    final newTexcoords = List<Offset>();
-    final vertexTexture = HashMap<int, int>();
+    if (faceStart == 0 && faceEnd == vertexIndices.length) {
+      newVertices = vertices;
+      newTexcoords = texcoords;
+      newIndices = vertexIndices;
+      newTextureIndices = textureIndices;
+    } else {
+      _copyRangeIndices(
+          faceStart, faceEnd, vertices, vertexIndices, newVertices, newIndices);
+      _copyRangeIndices(faceStart, faceEnd, texcoords, textureIndices,
+          newTexcoords, newTextureIndices);
+    }
+
+    // load texture image from assets.
+    final Material material =
+        (materials != null) ? materials[elementMaterials[index]] : null;
+    final MapEntry<String, Image> imageEntry =
+        await loadTexture(material, basePath);
+
+    // fix zero texture area
+    if (imageEntry != null) {
+      _remapZeroAreaUVs(
+          newTexcoords,
+          newTextureIndices,
+          imageEntry.value.width.toDouble(),
+          imageEntry.value.height.toDouble());
+    }
 
     // If a vertex has multiple different texture coordinates,
     // then create a vertex for each texture coordinate.
-    // TODO: performance needs to be optimized
-    for (var i = faceStart; i < faceEnd; i++) {
-      final List<int> vi = vertexIndices[i].copyToArray();
-      final List<int> face = List<int>(3);
-      if (textureIndices[i] == null) {
-        // doesn't have texture coordinates then create it
-        for (int j = 0; j < vi.length; j++) {
-          face[j] = newVertices.length;
-          newVertices.add(vertices[vi[j]].clone());
-        }
-        newTexcoords.add(Offset(0.0, 0.0));
-        newTexcoords.add(Offset(0.0, 1.0));
-        newTexcoords.add(Offset(1.0, 0.0));
-      } else {
-        final List<int> ti = textureIndices[i].copyToArray();
-        for (int j = 0; j < vi.length; j++) {
-          var key = (vi[j] << 32) + ti[j];
-          face[j] = vertexTexture[key];
-          if (face[j] == null) {
-            face[j] = newVertices.length;
-            int vIndex = vi[j];
-            if (vIndex < 0) vIndex = vertices.length - 1 + vIndex;
-
-            int tIndex = ti[j];
-            if (tIndex < 0) tIndex = texcoords.length - 1 + tIndex;
-
-            vertexTexture[key] = face[j];
-            newVertices.add(vertices[vIndex].clone());
-            newTexcoords.add(texcoords[tIndex]);
-          }
-        }
-      }
-      newIndices.add(Polygon(face[0], face[1], face[2]));
-    }
-
-    final Material material =
-        (materials != null) ? materials[elementMaterials[index]] : null;
-    // load texture image from assets.
-    final MapEntry<String, Image> imageEntry =
-        await loadTexture(material, basePath, isAsset: isAsset);
-
-    // generate color list
-    final List<Color> newColors = List<Color>(newVertices.length);
-    // texture mode then set color to transparent.
-    final Color color = (imageEntry != null)
-        ? Color.fromARGB(0, 0, 0, 0)
-        : (material == null)
-            ? Color.fromARGB(255, 255, 255, 255)
-            : toColor(material.kd, material.d);
-    for (int i = 0; i < newColors.length; i++) {
-      newColors[i] = color;
-    }
+    _rebuildVertices(newVertices, newTexcoords, newIndices, newTextureIndices);
 
     final Mesh mesh = Mesh(
       vertices: newVertices,
       texcoords: newTexcoords,
       indices: newIndices,
-      colors: newColors,
       texture: imageEntry?.value,
       texturePath: imageEntry?.key,
       material: material,
@@ -292,6 +260,91 @@ Future<List<Mesh>> _buildMesh(
   }
 
   return meshes;
+}
+
+/// Copy a mesh from the obj
+void _copyRangeIndices<type>(int start, int end, List<type> fromVertices,
+    List<Polygon> fromIndices, List<type> toVertices, List<Polygon> toIndices) {
+  if (start < 0 || end > fromIndices.length) return;
+  final faceMap = List<int>(fromVertices.length);
+  final List<int> face = List<int>(3);
+  for (int i = start; i < end; i++) {
+    final List<int> vi = fromIndices[i].copyToArray();
+    for (int j = 0; j < vi.length; j++) {
+      int index = vi[j];
+      if (index < 0) index = fromVertices.length - 1 + index;
+      face[j] = faceMap[index];
+      if (face[j] == null) {
+        face[j] = toVertices.length;
+        faceMap[index] = toVertices.length;
+        toVertices.add(fromVertices[index]);
+      }
+    }
+    toIndices.add(Polygon(face[0], face[1], face[2]));
+  }
+}
+
+/// Remap the UVs when the texture area is zero.
+void _remapZeroAreaUVs(List<Offset> texcoords, List<Polygon> textureIndices,
+    double textureWidth, double textureHeight) {
+  for (int index = 0; index < textureIndices.length; index++) {
+    Polygon p = textureIndices[index];
+    if (texcoords[p.vertex0] == texcoords[p.vertex1] &&
+        texcoords[p.vertex0] == texcoords[p.vertex2]) {
+      double u = (texcoords[p.vertex0].dx * textureWidth).floorToDouble();
+      double v = (texcoords[p.vertex0].dy * textureHeight).floorToDouble();
+      double u1 = (u + 1.0) / textureWidth;
+      double v1 = (v + 1.0) / textureHeight;
+      u /= textureWidth;
+      v /= textureHeight;
+      int texindex = texcoords.length;
+      texcoords.add(Offset(u, v));
+      texcoords.add(Offset(u, v1));
+      texcoords.add(Offset(u1, v));
+      p.vertex0 = texindex;
+      p.vertex1 = texindex + 1;
+      p.vertex2 = texindex + 2;
+    }
+  }
+}
+
+/// Rebuild vertices and texture coordinates to keep the same length.
+void _rebuildVertices(List<Vector3> vertices, List<Offset> texcoords,
+    List<Polygon> vertexIndices, List<Polygon> textureIndices) {
+  int texcoordsCount = texcoords.length;
+  if (texcoordsCount == 0) return;
+  List<Vector3> newVertices = List<Vector3>();
+  List<Offset> newTexcoords = List<Offset>();
+  HashMap<int, int> indexMap = HashMap<int, int>();
+  for (int i = 0; i < vertexIndices.length; i++) {
+    List<int> vi = vertexIndices[i].copyToArray();
+    List<int> ti = textureIndices[i].copyToArray();
+    List<int> face = List<int>(3);
+    for (int j = 0; j < vi.length; j++) {
+      int vIndex = vi[j];
+      int tIndex = ti[j];
+      int vtIndex = vIndex * texcoordsCount + tIndex;
+      face[j] = indexMap[vtIndex];
+      if (face[j] == null) {
+        face[j] = newVertices.length;
+        indexMap[vtIndex] = face[j];
+        newVertices.add(vertices[vIndex].clone());
+        newTexcoords.add(texcoords[tIndex]);
+      }
+    }
+    vertexIndices[i].copyFromArray(face);
+  }
+  vertices
+    ..clear()
+    ..addAll(newVertices);
+  texcoords
+    ..clear()
+    ..addAll(newTexcoords);
+}
+
+/// Calculate normal vector
+Vector3 normalVector(Vector3 a, Vector3 b, Vector3 c) {
+  return (b - a).cross(c - a).normalized();
 }
 
 /// Scale the model size to 1
@@ -328,7 +381,8 @@ Future<Image> packingTexture(List<Mesh> meshes) async {
   String getMeshKey(Mesh mesh) {
     if (mesh.texture != null)
       return mesh.texturePath ?? '' + mesh.textureRect.toString();
-    if (mesh.material != null) return toColor(mesh.material.kd.bgr).toString();
+    if (mesh.material != null)
+      return toColor(mesh.material.diffuse.bgr).toString();
     return null;
   }
 
