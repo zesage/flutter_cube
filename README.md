@@ -43,6 +43,29 @@ import 'package:flutter_cube/flutter_cube.dart';
   }
 ```
 
+Use obj file from sdcard
+
+```dart
+import 'package:flutter_cube/flutter_cube.dart';
+... ...
+@override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Cube(
+          onSceneCreated: (Scene scene) {
+            scene.world.add(
+              Object(
+                fileName: '/sdcard/cube/cube.obj', isAsset: false,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+```
+
 ## Screenshot
 
 ![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/screenshot.gif)    ![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/ruby_rose.gif)    ![screenshot](https://github.com/zesage/flutter_cube/raw/master/resource/planet.gif)

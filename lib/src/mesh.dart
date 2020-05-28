@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:math' as math;
@@ -54,7 +55,7 @@ class Mesh {
 /// Loading mesh from Wavefront's object file (.obj).
 /// Reference：http://paulbourke.net/dataformats/obj/
 ///
-Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
+Future<List<Mesh>> loadObj(String fileName, bool normalized, {bool isAsset = true}) async {
   Map<String, Material> materials;
   List<Vector3> vertices = List<Vector3>();
   List<Offset> texcoords = List<Offset>();
@@ -68,8 +69,14 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
   String groupName = '';
   String basePath = path.dirname(fileName);
 
-  // load obj data from asset.
-  final data = await rootBundle.loadString(fileName);
+  var data;
+  if (isAsset) {
+    // load obj data from asset.
+    data = await rootBundle.loadString(fileName);
+  } else {
+    // load obj data from file.
+    data = await File(fileName).readAsString();
+  }
   final lines = data.split('\n');
   for (var line in lines) {
     List<String> parts = line.trim().split(RegExp(r"\s+"));
@@ -78,7 +85,7 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
       case 'mtllib':
         // load material library file. eg: mtllib master.mtl
         final mtlFileName = path.join(basePath, parts[1]);
-        materials = await loadMtl(mtlFileName);
+        materials = await loadMtl(mtlFileName, isAsset: isAsset);
         break;
       case 'usemtl':
         // material name from material library. eg: usemtl red
@@ -153,12 +160,13 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized) async {
     elementMaterials,
     elementOffsets,
     basePath,
+    isAsset,
   );
   return normalized ? normalizeMesh(meshes) : meshes;
 }
 
 /// Load the texture image file and rebuild vertices and texcoords to keep the same length.
-Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, List<Polygon> vertexIndices, List<Polygon> textureIndices, Map<String, Material> materials, List<String> elementNames, List<String> elementMaterials, List<int> elementOffsets, String basePath) async {
+Future<List<Mesh>> _buildMesh(List<Vector3> vertices, List<Offset> texcoords, List<Polygon> vertexIndices, List<Polygon> textureIndices, Map<String, Material> materials, List<String> elementNames, List<String> elementMaterials, List<int> elementOffsets, String basePath, bool isAsset,) async {
   if (elementOffsets.length == 0) {
     elementNames.add('');
     elementMaterials.add('');
