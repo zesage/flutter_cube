@@ -18,6 +18,7 @@ class Object {
     this.visiable = true,
     bool normalized = true,
     String fileName,
+    bool isAsset = true,
   }) {
     if (position != null) position.copyInto(this.position);
     if (rotation != null) rotation.copyInto(this.rotation);
@@ -32,7 +33,7 @@ class Object {
 
     // load mesh from obj file
     if (fileName != null) {
-      loadObj(fileName, normalized).then((List<Mesh> meshes) {
+      loadObj(fileName, normalized, isAsset: isAsset).then((List<Mesh> meshes) {
         if (meshes.length == 1) {
           mesh = meshes[0];
         } else if (meshes.length > 1) {
