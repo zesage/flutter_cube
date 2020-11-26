@@ -10,7 +10,7 @@ Add flutter_cube as a dependency in your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  flutter_cube: ^0.0.4
+  flutter_cube: ^0.0.6
 ```
 
 Add Wavefront's object files to assets.
@@ -36,29 +36,6 @@ import 'package:flutter_cube/flutter_cube.dart';
         child: Cube(
           onSceneCreated: (Scene scene) {
             scene.world.add(Object(fileName: 'assets/cube/cube.obj'));
-          },
-        ),
-      ),
-    );
-  }
-```
-
-Use obj file from sdcard
-
-```dart
-import 'package:flutter_cube/flutter_cube.dart';
-... ...
-@override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Cube(
-          onSceneCreated: (Scene scene) {
-            scene.world.add(
-              Object(
-                fileName: '/sdcard/cube/cube.obj', isAsset: false,
-              ),
-            );
           },
         ),
       ),

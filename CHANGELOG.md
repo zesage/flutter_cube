@@ -1,3 +1,15 @@
+## [0.0.6] - 11/26/2020
+
+- add support external file
+- add lighting
+- fix some bugs
+
+## [0.0.5] - 04/11/2020
+
+- fix texture & color mode
+- add visiable & normalized & remove for object
+- fix miss scene
+
 ## [0.0.4] - 03/06/2020
 
 - fix updateTexture not working
