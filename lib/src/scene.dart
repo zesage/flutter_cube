@@ -11,26 +11,22 @@ import 'light.dart';
 typedef ObjectCreatedCallback = void Function(Object object);
 
 class Scene {
-  Scene({VoidCallback onUpdate, ObjectCreatedCallback onObjectCreated}) {
+  Scene({VoidCallback? onUpdate, ObjectCreatedCallback? onObjectCreated}) {
     this._onUpdate = onUpdate;
     this._onObjectCreated = onObjectCreated;
-    light = Light();
-    camera = Camera();
     world = Object(scene: this);
-    blendMode = BlendMode.srcOver;
-    textureBlendMode = BlendMode.srcOver;
   }
 
-  Light light;
-  Camera camera;
-  Object world;
-  Image texture;
-  BlendMode blendMode;
-  BlendMode textureBlendMode;
-  VoidCallback _onUpdate;
-  ObjectCreatedCallback _onObjectCreated;
-  int vertexCount;
-  int faceCount;
+  Light light = Light();
+  Camera camera = Camera();
+  late Object world;
+  Image? texture;
+  BlendMode blendMode = BlendMode.srcOver;
+  BlendMode textureBlendMode = BlendMode.srcOver;
+  VoidCallback? _onUpdate;
+  ObjectCreatedCallback? _onObjectCreated;
+  int vertexCount = 0;
+  int faceCount = 0;
   bool _needsUpdateTexture = false;
 
   // calculate the total number of vertices and faces
@@ -123,7 +119,7 @@ class Scene {
     renderMesh.vertexCount += vertexCount;
 
     // add faces to renderMesh
-    final List<Polygon> renderIndices = renderMesh.indices;
+    final List<Polygon?> renderIndices = renderMesh.indices;
     final List<Polygon> indices = o.mesh.indices;
     final int indexOffset = renderMesh.indexCount;
     final int indexCount = indices.length;
@@ -252,16 +248,13 @@ class Scene {
     _renderObject(renderMesh, world, Matrix4.identity(), camera.lookAtMatrix, camera.projectionMatrix);
 
     // remove the culled faces and recreate list.
-    final List<Polygon> renderIndices = List<Polygon>();
-    final List<Polygon> rawIndices = renderMesh.indices;
-    renderIndices.length = rawIndices.length;
-    int renderCount = 0;
+    final List<Polygon> renderIndices = <Polygon>[];
+    final List<Polygon?> rawIndices = renderMesh.indices;
     for (int i = 0; i < rawIndices.length; i++) {
-      final Polygon p = rawIndices[i];
-      if (p != null) renderIndices[renderCount++] = p;
+      final Polygon? p = rawIndices[i];
+      if (p != null) renderIndices.add(p);
     }
-    renderIndices.length = renderCount;
-    if (renderCount == 0) return;
+    if (renderIndices.length == 0) return;
 
     // sort the faces by z
     renderIndices.sort((Polygon a, Polygon b) {
@@ -297,7 +290,7 @@ class Scene {
     final paint = Paint();
     if (renderMesh.texture != null) {
       Float64List matrix4 = new Matrix4.identity().storage;
-      final shader = ImageShader(renderMesh.texture, TileMode.mirror, TileMode.mirror, matrix4);
+      final shader = ImageShader(renderMesh.texture!, TileMode.mirror, TileMode.mirror, matrix4);
       paint.shader = shader;
     }
     paint.blendMode = blendMode;
@@ -306,11 +299,11 @@ class Scene {
 
   void objectCreated(Object object) {
     updateTexture();
-    if (_onObjectCreated != null) _onObjectCreated(object);
+    if (_onObjectCreated != null) _onObjectCreated!(object);
   }
 
   void update() {
-    if (_onUpdate != null) _onUpdate();
+    if (_onUpdate != null) _onUpdate!();
   }
 
   void _getAllMesh(List<Mesh> meshes, Object object) {
@@ -322,7 +315,7 @@ class Scene {
   }
 
   void _updateTexture() async {
-    final meshes = List<Mesh>();
+    final meshes = <Mesh>[];
     _getAllMesh(meshes, world);
     texture = await packingTexture(meshes);
     update();
@@ -341,16 +334,14 @@ class RenderMesh {
     positionsZ = Float32List(vertexCount);
     texcoords = Float32List(vertexCount * 2);
     colors = Int32List(vertexCount);
-    indices = List<Polygon>(faceCount);
-    this.vertexCount = 0;
-    this.indexCount = 0;
+    indices = List<Polygon?>.filled(faceCount, null);
   }
-  Float32List positions;
-  Float32List positionsZ;
-  Float32List texcoords;
-  Int32List colors;
-  List<Polygon> indices;
-  Image texture;
-  int vertexCount;
-  int indexCount;
+  late Float32List positions;
+  late Float32List positionsZ;
+  late Float32List texcoords;
+  late Int32List colors;
+  late List<Polygon?> indices;
+  Image? texture;
+  int vertexCount = 0;
+  int indexCount = 0;
 }

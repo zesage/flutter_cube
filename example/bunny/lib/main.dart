@@ -15,18 +15,18 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  Scene _scene;
-  Object _bunny;
-  AnimationController _controller;
+  late Scene _scene;
+  Object? _bunny;
+  late AnimationController _controller;
   double _ambient = 0.1;
   double _diffuse = 0.8;
   double _specular = 0.5;
@@ -38,7 +38,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     scene.light.position.setFrom(Vector3(0, 10, 10));
     scene.light.setColor(Colors.white, _ambient, _diffuse, _specular);
     _bunny = Object(position: Vector3(0, -1.0, 0), scale: Vector3(10.0, 10.0, 10.0), lighting: true, fileName: 'assets/bunny/bunny.obj');
-    scene.world.add(_bunny);
+    scene.world.add(_bunny!);
   }
 
   @override
@@ -47,8 +47,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _controller = AnimationController(duration: Duration(milliseconds: 30000), vsync: this)
       ..addListener(() {
         if (_bunny != null) {
-          _bunny.rotation.y = _controller.value * 360;
-          _bunny.updateTransform();
+          _bunny!.rotation.y = _controller.value * 360;
+          _bunny!.updateTransform();
           _scene.update();
         }
       })
@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title!),
       ),
       body: Stack(
         children: <Widget>[
@@ -129,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                       onChanged: (value) {
                         setState(() {
                           _shininess = value;
-                          _bunny.mesh.material.shininess = _shininess;
+                          _bunny!.mesh.material.shininess = _shininess;
                         });
                       },
                     ),

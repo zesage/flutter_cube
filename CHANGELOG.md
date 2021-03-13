@@ -1,3 +1,7 @@
+## [0.1.0] - 03/13/2021
+
+- migrate to null safety
+
 ## [0.0.6] - 11/26/2020
 
 - add support external file

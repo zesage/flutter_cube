@@ -17,18 +17,18 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  Scene _scene;
-  Object _cube;
-  AnimationController _controller;
+  late Scene _scene;
+  Object? _cube;
+  late AnimationController _controller;
 
   void _onSceneCreated(Scene scene) {
     _scene = scene;
@@ -48,9 +48,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         position: Vector3(x, y, z)..scale(radius),
         fileName: 'assets/cube/cube.obj',
       );
-      _cube.add(cube);
+      _cube!.add(cube);
     }
-    scene.world.add(_cube);
+    scene.world.add(_cube!);
   }
 
   @override
@@ -59,8 +59,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _controller = AnimationController(duration: Duration(milliseconds: 30000), vsync: this)
       ..addListener(() {
         if (_cube != null) {
-          _cube.rotation.y = _controller.value * 360;
-          _cube.updateTransform();
+          _cube!.rotation.y = _controller.value * 360;
+          _cube!.updateTransform();
           _scene.update();
         }
       })
@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title!),
       ),
       body: Center(
         child: Cube(

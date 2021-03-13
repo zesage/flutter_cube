@@ -5,19 +5,19 @@ import 'mesh.dart';
 
 class Object {
   Object({
-    Vector3 position,
-    Vector3 rotation,
-    Vector3 scale,
+    Vector3? position,
+    Vector3? rotation,
+    Vector3? scale,
     this.name,
-    this.mesh,
-    Scene scene,
+    Mesh? mesh,
+    Scene? scene,
     this.parent,
-    this.children,
+    List<Object>? children,
     this.backfaceCulling = true,
     this.lighting = false,
     this.visiable = true,
     bool normalized = true,
-    String fileName,
+    String? fileName,
     bool isAsset = true,
   }) {
     if (position != null) position.copyInto(this.position);
@@ -25,7 +25,7 @@ class Object {
     if (scale != null) scale.copyInto(this.scale);
     updateTransform();
     this.mesh = mesh ?? Mesh();
-    this.children = children ?? List<Object>();
+    this.children = children ?? <Object>[];
     for (Object child in this.children) {
       child.parent = this;
     }
@@ -35,7 +35,7 @@ class Object {
     if (fileName != null) {
       loadObj(fileName, normalized, isAsset: isAsset).then((List<Mesh> meshes) {
         if (meshes.length == 1) {
-          mesh = meshes[0];
+          this.mesh = meshes[0];
         } else if (meshes.length > 1) {
           // multiple objects
           for (Mesh mesh in meshes) {
@@ -59,12 +59,12 @@ class Object {
   final Vector3 scale = Vector3(1.0, 1.0, 1.0);
 
   /// The name of this object.
-  String name;
+  String? name;
 
   /// The scene of this object.
-  Scene _scene;
-  Scene get scene => _scene;
-  set scene(Scene value) {
+  Scene? _scene;
+  Scene? get scene => _scene;
+  set scene(Scene? value) {
     _scene = value;
     for (Object child in children) {
       child.scene = value;
@@ -72,13 +72,13 @@ class Object {
   }
 
   /// The parent of this object.
-  Object parent;
+  Object? parent;
 
   /// The children of this object.
-  List<Object> children;
+  late List<Object> children;
 
   /// The mesh of this object
-  Mesh mesh;
+  late Mesh mesh;
 
   /// The backface will be culled without rendering.
   bool backfaceCulling;
@@ -111,10 +111,10 @@ class Object {
   }
 
   /// Find a child matching the name
-  Object find(Pattern name) {
+  Object? find(Pattern name) {
     for (Object child in children) {
-      if ((name as RegExp).hasMatch(child.name)) return child;
-      final Object result = child.find(name);
+      if (child.name != null && (name as RegExp).hasMatch(child.name!)) return child;
+      final Object? result = child.find(name);
       if (result != null) return result;
     }
     return null;

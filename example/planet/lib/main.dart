@@ -17,19 +17,19 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  Scene _scene;
-  Object _earth;
-  Object _stars;
-  AnimationController _controller;
+  late Scene _scene;
+  Object? _earth;
+  late Object _stars;
+  late AnimationController _controller;
 
   void generateSphereObject(Object parent, String name, double radius, bool backfaceCulling, String texturePath) async {
     final Mesh mesh = await generateSphereMesh(radius: radius, texturePath: texturePath);
@@ -46,9 +46,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
     // create by code
     _earth = Object(name: 'earth', scale: Vector3(10.0, 10.0, 10.0));
-    generateSphereObject(_earth, 'surface', 0.485, true, 'assets/earth/4096_earth.jpg');
-    generateSphereObject(_earth, 'clouds', 0.5, true, 'assets/earth/4096_clouds.png');
-    _scene.world.add(_earth);
+    generateSphereObject(_earth!, 'surface', 0.485, true, 'assets/earth/4096_earth.jpg');
+    generateSphereObject(_earth!, 'clouds', 0.5, true, 'assets/earth/4096_clouds.png');
+    _scene.world.add(_earth!);
 
     // texture from https://www.solarsystemscope.com/textures/
     _stars = Object(name: 'stars', scale: Vector3(2000.0, 2000.0, 2000.0));
@@ -62,8 +62,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _controller = AnimationController(duration: Duration(milliseconds: 30000), vsync: this)
       ..addListener(() {
         if (_earth != null) {
-          _earth.rotation.y = _controller.value * 360;
-          _earth.updateTransform();
+          _earth!.rotation.y = _controller.value * 360;
+          _earth!.updateTransform();
           _scene.update();
         }
       })
@@ -85,11 +85,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 }
 
-Future<Mesh> generateSphereMesh({num radius = 0.5, int latSegments = 32, int lonSegments = 64, String texturePath}) async {
+Future<Mesh> generateSphereMesh({num radius = 0.5, int latSegments = 32, int lonSegments = 64, required String texturePath}) async {
   int count = (latSegments + 1) * (lonSegments + 1);
-  List<Vector3> vertices = List<Vector3>(count);
-  List<Offset> texcoords = List<Offset>(count);
-  List<Polygon> indices = List<Polygon>(latSegments * lonSegments * 2);
+  List<Vector3> vertices = List<Vector3>.filled(count, Vector3.zero());
+  List<Offset> texcoords = List<Offset>.filled(count, Offset.zero);
+  List<Polygon> indices = List<Polygon>.filled(latSegments * lonSegments * 2, Polygon(0, 0, 0));
 
   int i = 0;
   for (int y = 0; y <= latSegments; ++y) {

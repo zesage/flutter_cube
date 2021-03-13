@@ -53,7 +53,7 @@ Future<Map<String, Material>> loadMtl(String fileName, {bool isAsset = true}) as
   }
   final List<String> lines = data.split('\n');
 
-  Material material;
+  Material material = Material();
   for (String line in lines) {
     List<String> parts = line.trim().split(RegExp(r"\s+"));
     switch (parts[0]) {
@@ -129,8 +129,7 @@ Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
   final c = Completer<Image>();
   var dataFuture;
   if (isAsset) {
-    dataFuture =
-        rootBundle.load(fileName).then((data) => data.buffer.asUint8List());
+    dataFuture = rootBundle.load(fileName).then((data) => data.buffer.asUint8List());
   } else {
     dataFuture = File(fileName).readAsBytes();
   }
@@ -147,7 +146,7 @@ Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
 }
 
 /// load texture from asset
-Future<MapEntry<String, Image>> loadTexture(Material material, String basePath, {bool isAsset = true}) async {
+Future<MapEntry<String, Image>?> loadTexture(Material? material, String basePath, {bool isAsset = true}) async {
   // get the texture file name
   if (material == null) return null;
   String fileName = material.mapKa;
@@ -155,7 +154,7 @@ Future<MapEntry<String, Image>> loadTexture(Material material, String basePath, 
   if (fileName == '') return null;
 
   // try to load image from asset in subdirectories
-  Image image;
+  Image? image;
   final List<String> dirList = fileName.split(RegExp(r'[/\\]+'));
   while (dirList.length > 0) {
     fileName = path.join(basePath, path.joinAll(dirList));
@@ -171,7 +170,7 @@ Future<MapEntry<String, Image>> loadTexture(Material material, String basePath, 
 Future<Uint32List> getImagePixels(Image image) async {
   final c = Completer<Uint32List>();
   image.toByteData(format: ImageByteFormat.rawRgba).then((data) {
-    c.complete(data.buffer.asUint32List());
+    c.complete(data!.buffer.asUint32List());
   }).catchError((error) {
     c.completeError(error);
   });

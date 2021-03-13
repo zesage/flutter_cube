@@ -3,9 +3,9 @@ import 'package:vector_math/vector_math_64.dart';
 
 class Camera {
   Camera({
-    Vector3 position,
-    Vector3 target,
-    Vector3 up,
+    Vector3? position,
+    Vector3? target,
+    Vector3? up,
     this.fov = 60.0,
     this.near = 0.1,
     this.far = 1000,

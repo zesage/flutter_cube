@@ -7,24 +7,24 @@ typedef void SceneCreatedCallback(Scene scene);
 
 class Cube extends StatefulWidget {
   Cube({
-    Key key,
+    Key? key,
     this.interactive = true,
     this.onSceneCreated,
     this.onObjectCreated,
   }) : super(key: key);
 
   final bool interactive;
-  final SceneCreatedCallback onSceneCreated;
-  final ObjectCreatedCallback onObjectCreated;
+  final SceneCreatedCallback? onSceneCreated;
+  final ObjectCreatedCallback? onObjectCreated;
 
   @override
   _CubeState createState() => _CubeState();
 }
 
 class _CubeState extends State<Cube> {
-  Scene scene;
-  Offset _lastFocalPoint;
-  double _lastZoom;
+  late Scene scene;
+  late Offset _lastFocalPoint;
+  double? _lastZoom;
 
   void _handleScaleStart(ScaleStartDetails details) {
     _lastFocalPoint = details.localFocalPoint;
@@ -37,7 +37,7 @@ class _CubeState extends State<Cube> {
     if (_lastZoom == null) {
       _lastZoom = scene.camera.zoom;
     } else {
-      scene.camera.zoom = _lastZoom * details.scale;
+      scene.camera.zoom = _lastZoom! * details.scale;
     }
     setState(() {});
   }
@@ -49,7 +49,7 @@ class _CubeState extends State<Cube> {
       onUpdate: () => setState(() {}),
       onObjectCreated: widget.onObjectCreated,
     );
-    if (widget.onSceneCreated != null) widget.onSceneCreated(scene);
+    if (widget.onSceneCreated != null) widget.onSceneCreated!(scene);
   }
 
   @override
