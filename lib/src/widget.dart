@@ -49,7 +49,10 @@ class _CubeState extends State<Cube> {
       onUpdate: () => setState(() {}),
       onObjectCreated: widget.onObjectCreated,
     );
-    if (widget.onSceneCreated != null) widget.onSceneCreated!(scene);
+    // prevent setState() or markNeedsBuild called during build
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      widget.onSceneCreated?.call(scene);
+    });
   }
 
   @override
