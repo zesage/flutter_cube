@@ -357,6 +357,7 @@ Future<Image?> packingTexture(List<Mesh> meshes) async {
   final allMeshes = meshes;
   final textures = Map<String, Mesh>();
   for (Mesh mesh in allMeshes) {
+    if (mesh.vertices.length == 0) continue;
     final String key = getMeshKey(mesh);
     textures.putIfAbsent(key, () => mesh);
   }
