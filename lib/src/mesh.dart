@@ -185,6 +185,7 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
     elementOffsets,
     basePath,
     isAsset,
+    isUrl
   );
   return normalized ? normalizeMesh(meshes) : meshes;
 }
@@ -201,6 +202,7 @@ Future<List<Mesh>> _buildMesh(
   List<int> elementOffsets,
   String basePath,
   bool isAsset,
+  bool isUrl,
 ) async {
   if (elementOffsets.length == 0) {
     elementNames.add('');
@@ -236,7 +238,7 @@ Future<List<Mesh>> _buildMesh(
     final Material? material =
         (materials != null) ? materials[elementMaterials[index]] : null;
     final MapEntry<String, Image>? imageEntry =
-        await loadTexture(material, basePath);
+        await loadTexture(material, basePath, isUrl: isUrl);
 
     // fix zero texture area
     if (imageEntry != null) {
