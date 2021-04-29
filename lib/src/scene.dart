@@ -88,7 +88,7 @@ class Scene {
   }
 
   void _renderObject(RenderMesh renderMesh, Object o, Matrix4 model, Matrix4 view, Matrix4 projection) {
-    if (!o.visiable) return;
+    if (!o.visible) return;
     model *= o.transform;
     final Matrix4 transform = projection * view * model;
 

@@ -1,3 +1,8 @@
+## [0.1.1] - 04/29/2021
+
+- load files from url
+- fix visible typo
+
 ## [0.1.0] - 03/13/2021
 
 - migrate to null safety
@@ -11,7 +16,7 @@
 ## [0.0.5] - 04/11/2020
 
 - fix texture & color mode
-- add visiable & normalized & remove for object
+- add visible & normalized & remove for object
 - fix miss scene
 
 ## [0.0.4] - 03/06/2020

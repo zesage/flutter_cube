@@ -15,10 +15,11 @@ class Object {
     List<Object>? children,
     this.backfaceCulling = true,
     this.lighting = false,
-    this.visiable = true,
+    this.visible = true,
     bool normalized = true,
     String? fileName,
     bool isAsset = true,
+    bool isUrl = false,
   }) {
     if (position != null) position.copyInto(this.position);
     if (rotation != null) rotation.copyInto(this.rotation);
@@ -33,7 +34,7 @@ class Object {
 
     // load mesh from obj file
     if (fileName != null) {
-      loadObj(fileName, normalized, isAsset: isAsset).then((List<Mesh> meshes) {
+      loadObj(fileName, normalized, isAsset: isAsset, isUrl: isUrl).then((List<Mesh> meshes) {
         if (meshes.length == 1) {
           this.mesh = meshes[0];
         } else if (meshes.length > 1) {
@@ -86,8 +87,8 @@ class Object {
   /// Enable basic lighting, default to false.
   bool lighting;
 
-  /// Is this object visiable.
-  bool visiable;
+  /// Is this object visible.
+  bool visible;
 
   /// The transformation of the object in the scene, including position, rotation, and scaling.
   final Matrix4 transform = Matrix4.identity();

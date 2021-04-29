@@ -1,6 +1,6 @@
 name: flutter_cube
 description: A Flutter 3D widget that renders Wavefront's object files.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/zesage/flutter_cube
 
 environment:
@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   vector_math: any
+  http: ^0.13.2
   path:
 
 dev_dependencies:
