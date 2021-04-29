@@ -144,16 +144,16 @@ Future<Image> loadImageFromUrl(String fileName) async {
   http.Client client = new http.Client();
   var req = await client.get(Uri.parse(fileName));
   dataFuture = req.bodyBytes.buffer.asUint8List();
-
-  dataFuture.then((data) {
-    instantiateImageCodec(data).then((codec) {
+  try {
+    instantiateImageCodec(dataFuture).then((codec) {
       codec.getNextFrame().then((frameInfo) {
         c.complete(frameInfo.image);
       });
     });
-  }).catchError((error) {
+  } catch (error) {
     c.completeError(error);
-  });
+  }
+
   return c.future;
 }
 
@@ -193,7 +193,7 @@ Future<MapEntry<String, Image>?> loadTexture(
 
   // load image from url
   if (url != null) {
-     if (url.endsWith("/") == false) {
+    if (url.endsWith("/") == false) {
       url = url + "/";
     }
     image = await loadImageFromUrl(url + fileName);
