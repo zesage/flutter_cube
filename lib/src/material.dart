@@ -5,6 +5,7 @@ import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as path;
 import 'dart:ui';
+import 'package:http/http.dart' as http;
 
 class Material {
   Material()
@@ -39,11 +40,19 @@ class Material {
 /// Loading material from Material Library File (.mtl).
 /// Reference：http://paulbourke.net/dataformats/mtl/
 ///
-Future<Map<String, Material>> loadMtl(String fileName, {bool isAsset = true}) async {
+Future<Map<String, Material>> loadMtl(String fileName,
+    {bool isAsset = true, String? url}) async {
   final materials = Map<String, Material>();
   String data;
   try {
-    if (isAsset) {
+    if (url != null) {
+      if (url.endsWith("/") == false) {
+        url = url + "/";
+      }
+      http.Client client = new http.Client();
+      var req = await client.get(Uri.parse(url + fileName));
+      data = req.body;
+    } else if (isAsset) {
       data = await rootBundle.loadString(fileName);
     } else {
       data = await File(fileName).readAsString();
@@ -66,25 +75,29 @@ Future<Map<String, Material>> loadMtl(String fileName, {bool isAsset = true}) as
         break;
       case 'Ka':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.ambient = v;
         }
         break;
       case 'Kd':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.diffuse = v;
         }
         break;
       case 'Ks':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.specular = v;
         }
         break;
       case 'Ke':
         if (parts.length >= 4) {
-          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]), double.parse(parts[3]));
+          final v = Vector3(double.parse(parts[1]), double.parse(parts[2]),
+              double.parse(parts[3]));
           material.ke = v;
         }
         break;
@@ -124,12 +137,33 @@ Future<Map<String, Material>> loadMtl(String fileName, {bool isAsset = true}) as
   return materials;
 }
 
+/// load an image from url
+Future<Image> loadImageFromUrl(String fileName) async {
+  final c = Completer<Image>();
+  var dataFuture;
+  http.Client client = new http.Client();
+  var req = await client.get(Uri.parse(fileName));
+  dataFuture = req.bodyBytes.buffer.asUint8List();
+  try {
+    instantiateImageCodec(dataFuture).then((codec) {
+      codec.getNextFrame().then((frameInfo) {
+        c.complete(frameInfo.image);
+      });
+    });
+  } catch (error) {
+    c.completeError(error);
+  }
+
+  return c.future;
+}
+
 /// load an image from asset
 Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
   final c = Completer<Image>();
   var dataFuture;
   if (isAsset) {
-    dataFuture = rootBundle.load(fileName).then((data) => data.buffer.asUint8List());
+    dataFuture =
+        rootBundle.load(fileName).then((data) => data.buffer.asUint8List());
   } else {
     dataFuture = File(fileName).readAsBytes();
   }
@@ -146,24 +180,37 @@ Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
 }
 
 /// load texture from asset
-Future<MapEntry<String, Image>?> loadTexture(Material? material, String basePath, {bool isAsset = true}) async {
+Future<MapEntry<String, Image>?> loadTexture(
+    Material? material, String basePath,
+    {bool isAsset = true, String? url}) async {
   // get the texture file name
   if (material == null) return null;
   String fileName = material.mapKa;
   if (fileName == '') fileName = material.mapKd;
   if (fileName == '') return null;
 
-  // try to load image from asset in subdirectories
   Image? image;
-  final List<String> dirList = fileName.split(RegExp(r'[/\\]+'));
-  while (dirList.length > 0) {
-    fileName = path.join(basePath, path.joinAll(dirList));
-    try {
-      image = await loadImageFromAsset(fileName, isAsset: isAsset);
-    } catch (_) {}
-    if (image != null) return MapEntry(fileName, image);
-    dirList.removeAt(0);
+
+  // load image from url
+  if (url != null) {
+    if (url.endsWith("/") == false) {
+      url = url + "/";
+    }
+    image = await loadImageFromUrl(url + fileName);
+    return MapEntry(fileName, image);
+  } else {
+    // try to load image from asset in subdirectories
+    final List<String> dirList = fileName.split(RegExp(r'[/\\]+'));
+    while (dirList.length > 0) {
+      fileName = path.join(basePath, path.joinAll(dirList));
+      try {
+        image = await loadImageFromAsset(fileName, isAsset: isAsset);
+      } catch (_) {}
+      if (image != null) return MapEntry(fileName, image);
+      dirList.removeAt(0);
+    }
   }
+
   return null;
 }
 
@@ -180,7 +227,8 @@ Future<Uint32List> getImagePixels(Image image) async {
 
 /// Convert Vector3 to Color
 Color toColor(Vector3 v, [double opacity = 1.0]) {
-  return Color.fromRGBO((v.r * 255).toInt(), (v.g * 255).toInt(), (v.b * 255).toInt(), opacity);
+  return Color.fromRGBO(
+      (v.r * 255).toInt(), (v.g * 255).toInt(), (v.b * 255).toInt(), opacity);
 }
 
 /// Convert Color to Vector3
