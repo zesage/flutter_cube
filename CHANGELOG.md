@@ -1,4 +1,4 @@
-## [0.1.1] - 04/29/2021
+## [0.1.2] - 04/29/2021
 
 - load files from url
 - fix visible typo

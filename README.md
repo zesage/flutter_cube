@@ -10,7 +10,7 @@ Add flutter_cube as a dependency in your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  flutter_cube: ^0.1.1
+  flutter_cube: ^0.1.2
 ```
 
 Add Wavefront's object files to assets.

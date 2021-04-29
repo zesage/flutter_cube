@@ -134,6 +134,26 @@ Future<Map<String, Material>> loadMtl(String fileName,
   return materials;
 }
 
+/// load an image from url
+Future<Image> loadImageFromUrl(String fileName) async {
+  final c = Completer<Image>();
+  var dataFuture;
+  http.Client client = new http.Client();
+  var req = await client.get(Uri.parse(fileName));
+  dataFuture = req.bodyBytes.buffer.asUint8List();
+
+  dataFuture.then((data) {
+    instantiateImageCodec(data).then((codec) {
+      codec.getNextFrame().then((frameInfo) {
+        c.complete(frameInfo.image);
+      });
+    });
+  }).catchError((error) {
+    c.completeError(error);
+  });
+  return c.future;
+}
+
 /// load an image from asset
 Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
   final c = Completer<Image>();
@@ -159,24 +179,32 @@ Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
 /// load texture from asset
 Future<MapEntry<String, Image>?> loadTexture(
     Material? material, String basePath,
-    {bool isAsset = true}) async {
+    {bool isAsset = true, bool isUrl = false}) async {
   // get the texture file name
   if (material == null) return null;
   String fileName = material.mapKa;
   if (fileName == '') fileName = material.mapKd;
   if (fileName == '') return null;
 
-  // try to load image from asset in subdirectories
   Image? image;
-  final List<String> dirList = fileName.split(RegExp(r'[/\\]+'));
-  while (dirList.length > 0) {
-    fileName = path.join(basePath, path.joinAll(dirList));
-    try {
-      image = await loadImageFromAsset(fileName, isAsset: isAsset);
-    } catch (_) {}
-    if (image != null) return MapEntry(fileName, image);
-    dirList.removeAt(0);
+
+  // load image from url
+  if (isUrl) {
+    image = await loadImageFromUrl(fileName);
+    return MapEntry(fileName, image);
+  } else {
+    // try to load image from asset in subdirectories
+    final List<String> dirList = fileName.split(RegExp(r'[/\\]+'));
+    while (dirList.length > 0) {
+      fileName = path.join(basePath, path.joinAll(dirList));
+      try {
+        image = await loadImageFromAsset(fileName, isAsset: isAsset);
+      } catch (_) {}
+      if (image != null) return MapEntry(fileName, image);
+      dirList.removeAt(0);
+    }
   }
+
   return null;
 }
 
