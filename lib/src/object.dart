@@ -19,7 +19,7 @@ class Object {
     bool normalized = true,
     String? fileName,
     bool isAsset = true,
-    bool isUrl = false,
+    String? url,
   }) {
     if (position != null) position.copyInto(this.position);
     if (rotation != null) rotation.copyInto(this.rotation);
@@ -34,7 +34,7 @@ class Object {
 
     // load mesh from obj file
     if (fileName != null) {
-      loadObj(fileName, normalized, isAsset: isAsset, isUrl: isUrl).then((List<Mesh> meshes) {
+      loadObj(fileName, normalized, isAsset: isAsset, url: url).then((List<Mesh> meshes) {
         if (meshes.length == 1) {
           this.mesh = meshes[0];
         } else if (meshes.length > 1) {

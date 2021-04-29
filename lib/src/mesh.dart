@@ -68,7 +68,7 @@ class Mesh {
 /// Reference：http://paulbourke.net/dataformats/obj/
 ///
 Future<List<Mesh>> loadObj(String fileName, bool normalized,
-    {bool isAsset = true, bool isUrl = false}) async {
+    {bool isAsset = true, String? url}) async {
   Map<String, Material>? materials;
   List<Vector3> vertices = <Vector3>[];
   List<Offset> texcoords = <Offset>[];
@@ -83,9 +83,12 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
   String basePath = path.dirname(fileName);
 
   var data;
-  if (isUrl) {
+  if (url != null) {
+    if (url.endsWith("/") == false) {
+      url = url + "/";
+    }
     http.Client client = new http.Client();
-    var req = await client.get(Uri.parse(fileName));
+    var req = await client.get(Uri.parse(url + fileName));
     data = req.body;
   } else if (isAsset) {
     // load obj data from asset.
@@ -94,7 +97,7 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
     // load obj data from file.
     data = await File(fileName).readAsString();
   }
-  
+
   final lines = data.split('\n');
   for (var line in lines) {
     List<String> parts = line.trim().split(RegExp(r"\s+"));
@@ -102,8 +105,13 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
     switch (parts[0]) {
       case 'mtllib':
         // load material library file. eg: mtllib master.mtl
-        final mtlFileName = path.join(basePath, parts[1]);
-        materials = await loadMtl(mtlFileName, isAsset: isAsset);
+        final mtlFileName;
+        if (url != null) {
+          mtlFileName = parts[1];
+        } else {
+          mtlFileName = path.join(basePath, parts[1]);
+        }
+        materials = await loadMtl(mtlFileName, isAsset: isAsset, url: url);
         break;
       case 'usemtl':
         // material name from material library. eg: usemtl red
@@ -185,7 +193,7 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized,
     elementOffsets,
     basePath,
     isAsset,
-    isUrl
+    url,
   );
   return normalized ? normalizeMesh(meshes) : meshes;
 }
@@ -202,7 +210,7 @@ Future<List<Mesh>> _buildMesh(
   List<int> elementOffsets,
   String basePath,
   bool isAsset,
-  bool isUrl,
+  String? url,
 ) async {
   if (elementOffsets.length == 0) {
     elementNames.add('');
@@ -238,7 +246,7 @@ Future<List<Mesh>> _buildMesh(
     final Material? material =
         (materials != null) ? materials[elementMaterials[index]] : null;
     final MapEntry<String, Image>? imageEntry =
-        await loadTexture(material, basePath, isUrl: isUrl);
+        await loadTexture(material, basePath, url: url);
 
     // fix zero texture area
     if (imageEntry != null) {

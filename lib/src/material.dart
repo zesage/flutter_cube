@@ -41,13 +41,16 @@ class Material {
 /// Reference：http://paulbourke.net/dataformats/mtl/
 ///
 Future<Map<String, Material>> loadMtl(String fileName,
-    {bool isAsset = true, bool isUrl = false}) async {
+    {bool isAsset = true, String? url}) async {
   final materials = Map<String, Material>();
   String data;
   try {
-    if (isUrl) {
+    if (url != null) {
+      if (url.endsWith("/") == false) {
+        url = url + "/";
+      }
       http.Client client = new http.Client();
-      var req = await client.get(Uri.parse(fileName));
+      var req = await client.get(Uri.parse(url + fileName));
       data = req.body;
     } else if (isAsset) {
       data = await rootBundle.loadString(fileName);
@@ -179,7 +182,7 @@ Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true}) {
 /// load texture from asset
 Future<MapEntry<String, Image>?> loadTexture(
     Material? material, String basePath,
-    {bool isAsset = true, bool isUrl = false}) async {
+    {bool isAsset = true, String? url}) async {
   // get the texture file name
   if (material == null) return null;
   String fileName = material.mapKa;
@@ -189,8 +192,11 @@ Future<MapEntry<String, Image>?> loadTexture(
   Image? image;
 
   // load image from url
-  if (isUrl) {
-    image = await loadImageFromUrl(fileName);
+  if (url != null) {
+     if (url.endsWith("/") == false) {
+      url = url + "/";
+    }
+    image = await loadImageFromUrl(url + fileName);
     return MapEntry(fileName, image);
   } else {
     // try to load image from asset in subdirectories
