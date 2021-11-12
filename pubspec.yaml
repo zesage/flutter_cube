@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   vector_math: any
-  http: ^0.13.2
+  http: ^0.13.4
   path:
 
 dev_dependencies:
