@@ -103,7 +103,7 @@ Future<Map<String, Material>> loadMtl(String fileName, {bool isAsset = true}) as
           material.mapKd = parts.last;
         }
         break;
-      case 'map_bump':
+      case 'map_Bump':
         if (parts.length >= 2) {
           material.mapBump = parts.last;
         }
