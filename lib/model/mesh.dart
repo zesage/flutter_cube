@@ -126,7 +126,7 @@ Future<List<Mesh>> buildMesh(
 
     // load texture image from assets.
     final Material? material = (materials != null) ? materials[elementMaterials[index]] : null;
-    final MapEntry<String, Image>? imageEntry = await loadTexture(material, basePath,isAsset: false);
+    final MapEntry<String, Image>? imageEntry = await loadTexture(material, basePath,isAsset: isAsset);
 
     // fix zero texture area
     if (imageEntry != null) 

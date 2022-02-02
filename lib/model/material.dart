@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -44,16 +45,15 @@ class Material {
 ///
 Future<Map<String, Material>> loadMtl(String fileName, {bool isAsset = true}) async {
   final materials = Map<String, Material>();
-  
   String data;
   try {
     if (isAsset) {
       data = await rootBundle.loadString(fileName.replaceAll('\\', '/'));
-    } else {
+    } 
+    else {
       data = await File(fileName).readAsString();
     }
-  } catch (e) {
-    print(e);
+  } catch (_) {
     return materials;
   }
   final List<String> lines = data.split('\n');
@@ -139,7 +139,7 @@ Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true, bool mak
   final c = Completer<Image>();
   var dataFuture;
   if (isAsset) 
-    dataFuture = rootBundle.load(fileName).then((data) => data.buffer.asUint8List());
+    dataFuture = rootBundle.load(fileName.replaceAll('\\', '/')).then((data) => data.buffer.asUint8List());
   else 
     dataFuture = File(fileName).readAsBytes();
 
@@ -163,16 +163,15 @@ Future<Image> loadImageFromAsset(String fileName, {bool isAsset = true, bool mak
 /// load texture from asset
 Future<MapEntry<String, Image>?> loadTexture(Material? material, String basePath, {bool isAsset = true}) async {
   // get the texture file name
-  bool makeGray = false;
   if (material == null) return null;
   String fileName = material.mapKa;
   if (fileName == '') fileName = material.mapKd;
+  bool makeGray = false;
   if (fileName == ''){
     fileName = material.mapBump;
     makeGray = true;
   }
   if (fileName == '') return null;
-
   // try to load image from asset in subdirectories
   Image? image;
   final List<String> dirList = fileName.split(RegExp(r'[/\\]+'));
