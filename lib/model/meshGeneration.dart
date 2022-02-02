@@ -13,7 +13,7 @@ class GenerateMesh{
     int count = (latSegments + 1) * (lonSegments + 1);
     List<Vector3> vertices = List<Vector3>.filled(count, Vector3.zero());
     List<Offset> texcoords = List<Offset>.filled(count, Offset.zero);
-    //List<Polygon> indices = List<Polygon>.filled(latSegments * lonSegments * 2, Polygon([0, 0, 0]));
+    List<Triangle> indices = List<Triangle>.filled(latSegments * lonSegments * 2, Triangle([0, 0, 0],null,null));
 
     int i = 0;
     for (int y = 0; y <= latSegments; ++y) {
@@ -32,10 +32,10 @@ class GenerateMesh{
     for (int y = 0; y < latSegments; ++y) {
       final int base1 = (lonSegments + 1) * y;
       final int base2 = (lonSegments + 1) * (y + 1);
-      // for (int x = 0; x < lonSegments; ++x) {
-      //   indices[i++] = Polygon([base1 + x, base1 + x + 1, base2 + x]);
-      //   indices[i++] = Polygon([base1 + x + 1, base2 + x + 1, base2 + x]);
-      // }
+      for (int x = 0; x < lonSegments; ++x) {
+        indices[i++] = Triangle([base1 + x, base1 + x + 1, base2 + x],null,[base1 + x, base1 + x + 1, base2 + x]);
+        indices[i++] = Triangle([base1 + x + 1, base2 + x + 1, base2 + x],null,[base1 + x, base1 + x + 1, base2 + x]);
+      }
     }
     Mesh mesh;
     if(texturePath != null){
@@ -43,7 +43,7 @@ class GenerateMesh{
       mesh = Mesh(
         vertices: vertices, 
         texcoords: texcoords, 
-        //indices: indices, 
+        indices: indices, 
         texture: texture, 
         texturePath: texturePath
       );
@@ -51,7 +51,7 @@ class GenerateMesh{
     else{
       mesh = Mesh(
         vertices: vertices, 
-        //indices: indices, 
+        indices: indices, 
       );
     }
     return mesh;
