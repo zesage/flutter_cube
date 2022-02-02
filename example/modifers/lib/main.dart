@@ -67,12 +67,14 @@ class _MyHomePageState extends State<MyHomePage> {
       orbitY: true,
       zoom: true
     );
+    //scene.blendMode = BlendMode.colorDodge;
+    scene.textureBlendMode = BlendMode.colorDodge; //use this if you want to change the color with texture applied
     scene.light.setColor(Colors.white, _ambient, _diffuse, _specular);
     scene.world.add(Object(
       position: Vector3(0, 0, 0), 
       rotation: Vector3(0,10,90),
       scale: Vector3(10.0, 10.0, 10.0), 
-      fileName: 'assets/sphere.obj',
+      fileName: 'assets/earth_w_nm.obj',
       number: 0,
       name: 'Sphere',
       backfaceCulling: true, 
