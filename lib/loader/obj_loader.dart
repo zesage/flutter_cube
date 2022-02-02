@@ -36,7 +36,7 @@ class OBJLoader{
     String? materialName;
     String? objectlName;
     String? groupName;
-    String basePath = kIsWeb?'temp':path.dirname(file);
+    String basePath = kIsWeb?'assets':path.dirname(file);
 
     String data;
     if (isAsset)
