@@ -125,11 +125,9 @@ class _CubeState extends State<Cube> {
             _lastZoom = null;
             scene.updateTapLocation(details.localPosition);
             tapped = true;
-            setState(() {});
-            //widget.callback?.call(call: CubeCallbacks.OnTap,details: details.localPosition);
           },
           onTapUp: (TapUpDetails details){
-            setState(() {});
+
           },
           child: customPaint,
         )
