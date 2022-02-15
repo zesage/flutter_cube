@@ -46,7 +46,9 @@ class _CubeState extends State<Cube> {
   void initState() {
     super.initState();
     scene = Scene(
-      onUpdate: () => setState(() {}),
+      onUpdate: () {
+        if (mounted) setState(() {});
+      },
       onObjectCreated: widget.onObjectCreated,
     );
     // prevent setState() or markNeedsBuild called during build
