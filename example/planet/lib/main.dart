@@ -89,7 +89,7 @@ Future<Mesh> generateSphereMesh({num radius = 0.5, int latSegments = 32, int lon
   int count = (latSegments + 1) * (lonSegments + 1);
   List<Vector3> vertices = List<Vector3>.filled(count, Vector3.zero());
   List<Offset> texcoords = List<Offset>.filled(count, Offset.zero);
-  List<Polygon> indices = List<Polygon>.filled(latSegments * lonSegments * 2, Polygon(0, 0, 0));
+  List<Triangle> indices = List<Triangle>.filled(latSegments * lonSegments * 2, Triangle([0, 0, 0],null,null));
 
   int i = 0;
   for (int y = 0; y <= latSegments; ++y) {
@@ -109,8 +109,8 @@ Future<Mesh> generateSphereMesh({num radius = 0.5, int latSegments = 32, int lon
     final int base1 = (lonSegments + 1) * y;
     final int base2 = (lonSegments + 1) * (y + 1);
     for (int x = 0; x < lonSegments; ++x) {
-      indices[i++] = Polygon(base1 + x, base1 + x + 1, base2 + x);
-      indices[i++] = Polygon(base1 + x + 1, base2 + x + 1, base2 + x);
+      indices[i++] = Triangle([base1 + x, base1 + x + 1, base2 + x],null,[base1 + x, base1 + x + 1, base2 + x]);
+      indices[i++] = Triangle([base1 + x + 1, base2 + x + 1, base2 + x],null,[base1 + x, base1 + x + 1, base2 + x]);
     }
   }
 
