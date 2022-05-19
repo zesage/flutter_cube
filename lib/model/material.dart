@@ -108,6 +108,16 @@ Future<Map<String, Material>> loadMtl(String fileName, {bool isAsset = true}) as
           material.mapBump = parts.last;
         }
         break;
+      case 'map_bump':
+        if (parts.length >= 2) {
+          material.mapBump = parts.last;
+        }
+        break;
+      case 'norm':
+        if (parts.length >= 2) {
+          material.mapBump = parts.last;
+        }
+        break;
       case 'Ns':
         if (parts.length >= 2) {
           material.shininess = double.parse(parts[1]);
