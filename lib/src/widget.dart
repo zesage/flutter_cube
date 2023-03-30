@@ -36,12 +36,12 @@ class _CubeState extends State<Cube> {
   void _handleScaleUpdate(ScaleUpdateDetails details) {
     scene.camera.trackBall(toVector2(_lastFocalPoint), toVector2(details.localFocalPoint), 1.5);
     _lastFocalPoint = details.localFocalPoint;
-    if(zoom){
-          if (_lastZoom == null) {
-      _lastZoom = scene.camera.zoom;
-    } else {
-      scene.camera.zoom = _lastZoom! * details.scale;
-    }
+    if (widget.zoom) {
+      if (_lastZoom == null) {
+        _lastZoom = scene.camera.zoom;
+      } else {
+        scene.camera.zoom = _lastZoom! * details.scale;
+      }
     }
     setState(() {});
   }
