@@ -9,11 +9,13 @@ class Cube extends StatefulWidget {
   Cube({
     Key? key,
     this.interactive = true,
+    this.zoom = true,
     this.onSceneCreated,
     this.onObjectCreated,
   }) : super(key: key);
 
   final bool interactive;
+  final bool zoom;
   final SceneCreatedCallback? onSceneCreated;
   final ObjectCreatedCallback? onObjectCreated;
 
@@ -34,10 +36,12 @@ class _CubeState extends State<Cube> {
   void _handleScaleUpdate(ScaleUpdateDetails details) {
     scene.camera.trackBall(toVector2(_lastFocalPoint), toVector2(details.localFocalPoint), 1.5);
     _lastFocalPoint = details.localFocalPoint;
-    if (_lastZoom == null) {
-      _lastZoom = scene.camera.zoom;
-    } else {
-      scene.camera.zoom = _lastZoom! * details.scale;
+    if (widget.zoom) {
+      if (_lastZoom == null) {
+        _lastZoom = scene.camera.zoom;
+      } else {
+        scene.camera.zoom = _lastZoom! * details.scale;
+      }
     }
     setState(() {});
   }
