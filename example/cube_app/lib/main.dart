@@ -25,7 +25,8 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   late Scene _scene;
   Object? _cube;
   late AnimationController _controller;
@@ -33,7 +34,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   void _onSceneCreated(Scene scene) {
     _scene = scene;
     scene.camera.position.z = 50;
-    _cube = Object(scale: Vector3(2.0, 2.0, 2.0), backfaceCulling: false, fileName: 'assets/cube/cube.obj');
+    _cube = Object(
+        scale: Vector3(2.0, 2.0, 2.0),
+        backfaceCulling: false,
+        fileName: 'assets/cube/cube.obj');
     final int samples = 100;
     final double radius = 8;
     final double offset = 2 / samples;
@@ -56,7 +60,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: Duration(milliseconds: 30000), vsync: this)
+    _controller = AnimationController(
+        duration: Duration(milliseconds: 30000), vsync: this)
       ..addListener(() {
         if (_cube != null) {
           _cube!.rotation.y = _controller.value * 360;
