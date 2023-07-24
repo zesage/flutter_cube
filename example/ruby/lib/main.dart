@@ -24,12 +24,15 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   void _onSceneCreated(Scene scene) {
     scene.camera.position.z = 10;
-    scene.camera.target.y = 2;
+    scene.camera.target.y = 0;
     // from https://sketchfab.com/3d-models/ruby-rose-2270ee59d38e409491a76451f6c6ef80
-    scene.world.add(Object(scale: Vector3(10.0, 10.0, 10.0), fileName: 'assets/ruby_rose/ruby_rose.obj'));
+    scene.world.add(Object(
+        scale: Vector3(10.0, 10.0, 10.0),
+        fileName: 'assets/ruby_rose/ruby_rose.obj'));
   }
 
   @override
@@ -40,6 +43,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       ),
       body: Center(
         child: Cube(
+          interactive: false,
           onSceneCreated: _onSceneCreated,
         ),
       ),
