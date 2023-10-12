@@ -84,7 +84,7 @@ Future<List<Mesh>> loadObj(String fileName, bool normalized, {bool isAsset = tru
     switch (parts[0]) {
       case 'mtllib':
         // load material library file. eg: mtllib master.mtl
-        final mtlFileName = path.join(basePath, parts[1]);
+        final mtlFileName = path.join(basePath, parts[1]).replaceAll('\\', '/');
         materials = await loadMtl(mtlFileName, isAsset: isAsset);
         break;
       case 'usemtl':
